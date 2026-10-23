@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Монитор сертификатов: макет v2</title>
+<style>
+  :root{
+    --page:#0b0910; --bg:#120f1a; --card:#1b1626; --card2:#231c30; --line:#2c2439; --text:#efeaf6; --mute:#9a91a9;
+    --coral:#f2948a; --coral-g:rgba(242,148,138,.26); --coral-t:#f2948a;
+    --dodo:#ff6900; --dodo-g:rgba(255,105,0,.22); --dodo-t:#ff8a3d;
+    --violet:#a99cf5; --violet-g:rgba(169,156,245,.15); --violet-t:#a99cf5;
+    --mint:#86d7b6;  --mint-g:rgba(134,215,182,.20); --mint-t:#86d7b6;
+    --grey:#8c8499;  --accent:#a99cf5; --bw:.45; --dim:rgba(5,3,9,.62);
+  }
+  :root[data-theme="light"]{
+    --page:#f1eff6; --bg:#faf9fd; --card:#ffffff; --card2:#f3f0f9; --line:#e2dcec; --text:#1d1726; --mute:#6c6379;
+    --coral:#d9695c; --coral-g:rgba(217,105,92,.20); --coral-t:#b5473d;
+    --dodo:#ff6900; --dodo-g:rgba(255,105,0,.18); --dodo-t:#c94f00;
+    --violet:#6f5fdb; --violet-g:rgba(111,95,219,.13); --violet-t:#6f5fdb;
+    --mint:#2f9e78;  --mint-g:rgba(47,158,120,.17); --mint-t:#22795b;
+    --grey:#8a8397; --accent:#6f5fdb; --bw:.6; --dim:rgba(29,23,38,.38);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --page:#f1eff6; --bg:#faf9fd; --card:#ffffff; --card2:#f3f0f9; --line:#e2dcec; --text:#1d1726; --mute:#6c6379;
+      --coral:#d9695c; --coral-g:rgba(217,105,92,.20); --coral-t:#b5473d;
+      --dodo:#ff6900; --dodo-g:rgba(255,105,0,.18); --dodo-t:#c94f00;
+      --violet:#6f5fdb; --violet-g:rgba(111,95,219,.13); --violet-t:#6f5fdb;
+      --mint:#2f9e78;  --mint-g:rgba(47,158,120,.17); --mint-t:#22795b;
+      --grey:#8a8397; --accent:#6f5fdb; --bw:.6; --dim:rgba(29,23,38,.38);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--text);font:14px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:24px 16px 56px}
+  button{font-family:inherit}
+  .top{max-width:1060px;margin:0 auto 16px}
+  h1{font-size:19px;margin:0 0 4px}
+  .sub{color:var(--mute);margin:0 0 12px;font-size:13px;max-width:840px}
+  .bar{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;margin-bottom:10px}
+  .bar .lbl{font-size:12px;color:var(--mute);margin-right:-6px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .seg button{background:var(--card);color:var(--mute);border:0;padding:6px 13px;font-size:13px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#120f1a;font-weight:600}
+  .layout{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:390px 1fr;gap:28px;align-items:start}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr} }
+
+  .phone{position:relative;width:390px;max-width:100%;min-height:780px;background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:16px 14px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35);margin:0 auto;overflow:hidden}
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--accent)}
+  .logo i{width:22px;height:22px;border-radius:7px;border:2px solid var(--accent);display:inline-block}
+  .ico{display:flex;gap:14px;align-items:center;color:var(--mute);font-size:16px}
+  .ava{width:26px;height:26px;border-radius:50%;background:#ff7a1a}
+  .tabs{display:flex;justify-content:space-around;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .tabs span{padding:8px 4px;color:var(--mute);font-size:14px}
+  .tabs .act{color:var(--text);border-bottom:2px solid var(--accent)}
+  .ib{background:none;border:0;color:var(--mute);cursor:pointer;padding:4px 6px;border-radius:8px;font-size:15px;line-height:1}
+  .ib:hover{background:var(--card2);color:var(--text)}
+  .muted{color:var(--mute);font-size:12.5px}
+  .gr{color:var(--mute)} .bad{color:var(--coral-t)}
+
+  /* монитор */
+  .mhead{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+  .mhead .tt{font-size:15.5px;font-weight:600;flex:1}
+  .sbtn{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:5px 10px;border-radius:9px;border:1px solid color-mix(in srgb,var(--accent) 60%,var(--line));color:var(--accent);background:none;cursor:pointer}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .chip{position:relative;font-size:12.5px;padding:6px 11px;border-radius:9px;background:var(--card);border:1px solid var(--line);color:var(--text)}
+  .chip select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+  .chip.back{cursor:pointer;color:var(--accent)}
+  .note{font-size:12px;color:var(--mute);background:var(--card2);border-radius:10px;padding:6px 10px;margin-bottom:10px}
+  .skel{height:6px;border-radius:4px;margin:-4px 0 10px;background:linear-gradient(90deg,var(--card2),color-mix(in srgb,var(--accent) 30%,var(--card2)),var(--card2));background-size:200% 100%;animation:sk 1.2s linear infinite}
+  @keyframes sk{to{background-position:-200% 0}}
+
+  .pf{border:1px solid var(--line);border-radius:14px;padding:10px 6px 9px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:10px;background:var(--card)}
+  .pf .c{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+  .pf .l{font-size:11px;color:var(--mute);white-space:nowrap}
+  .pf .nv{display:flex;align-items:center;gap:5px}
+  .pf .num{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+  .pf .num.r{color:var(--coral-t)}
+  .pf .d{font-size:11px;font-variant-numeric:tabular-nums}
+  .pf .d.g{color:var(--mint-t)} .pf .d.r{color:var(--coral-t)} .pf .d.n{color:var(--mute)}
+  .ar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+  .ar.g{background:color-mix(in srgb,var(--mint) 22%,transparent);color:var(--mint-t)}
+  .ar.r{background:color-mix(in srgb,var(--coral) 22%,transparent);color:var(--coral-t)}
+  .ar.n{background:var(--card2);color:var(--mute)}
+
+  .mtabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px;margin-bottom:8px}
+  .mtabs button{flex:1;border:0;background:none;color:var(--mute);font-size:12.5px;padding:6px 0;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .mtabs button.on{background:var(--card2);color:var(--text);font-weight:600}
+  .sec{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);margin:4px 2px 5px}
+  .sec b{color:var(--text);font-weight:600}
+  .cpi{background:none;border:0;padding:2px;color:var(--mute);cursor:pointer;line-height:0;border-radius:6px}
+  .cpi:hover{color:var(--accent);background:var(--card2)}
+  .fl1{display:flex;gap:6px;margin:0 0 8px;overflow-x:auto;scrollbar-width:none}
+  .fl1 button{flex:none;white-space:nowrap;font-size:12.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mute);cursor:pointer}
+  .fl1 button.on{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));color:var(--text);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+
+  .list{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 12px}
+  .row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .row:last-child{border-bottom:0}
+  .row .f{flex:1;min-width:0} .row .sm{font-size:11.5px;color:var(--mute)}
+  .row .n{font-variant-numeric:tabular-nums;text-align:right}
+  .row.hd{font-size:11px;color:var(--mute);padding:6px 0}
+  .tag{font-size:10.5px;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--coral) 22%,var(--card2));color:var(--coral-t);font-weight:600;margin-left:4px;white-space:nowrap}
+  .empty{padding:18px 6px;text-align:center;color:var(--mint-t);font-size:13.5px}
+  .empty.g{color:var(--mute)}
+
+  .rt{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 12px}
+  .rt .rr{display:grid;grid-template-columns:minmax(0,1fr) 84px 104px 18px;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .rt .rr:last-child{border-bottom:0}
+  .rt .rr.hd{cursor:default;padding:7px 0;font-size:11px;color:var(--mute)}
+  .rt .rr.hd span{text-align:right} .rt .rr.hd span:first-child{text-align:left}
+  .rt .nm{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rt .nm.z{color:var(--mute)}
+  .rt .s2{font-size:11.5px;color:var(--mute)} .rt .s2.r{color:var(--coral-t)}
+  .rt .mv{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .rt .mv b{font-size:15px;font-weight:600}
+  .rt .mv .sp{color:var(--line);margin:0 4px}
+  .rt .mv i{font-style:normal;font-size:11.5px;display:inline-block;min-width:44px;text-align:left}
+  .rt .mv i.g{color:var(--mint-t)} .rt .mv i.r{color:var(--coral-t)} .rt .mv i.n{color:var(--mute)}
+  .rt .rr:hover .nm{color:var(--accent)}
+  .rt .chv{display:inline-block;color:var(--mute);font-size:13px;transition:transform .15s;margin-left:2px}
+  .rt .chv.up{transform:rotate(180deg)}
+  .rt .rr.on{border-bottom:0}
+  .rexp{border-bottom:1px solid var(--line);padding:0 0 8px}
+  .rexp .ce{padding:8px 0}
+  .rexp .go{font-size:12px;color:var(--accent);cursor:pointer;padding:6px 0 0;background:none;border:0}
+
+  .ce{position:relative;display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .ce:last-child{border-bottom:0}
+  .ce .tm{font-size:12.5px;font-variant-numeric:tabular-nums;width:42px;flex:none;color:var(--mute);padding-top:1px}
+  .ce .tm.w{width:70px}
+  .ce .b{flex:1;min-width:0;font-size:13.5px}
+  .ce .mt{font-size:11.5px;color:var(--mute)}
+  .ce .more{display:none;font-size:12px;color:var(--mute);margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap}
+  .ce.ex .more{display:flex}
+  .ce .cp{margin-left:auto;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:2px 8px;background:none;color:var(--mute);cursor:pointer}
+  .unr{position:absolute;left:-8px;top:16px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .late{color:var(--coral-t);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) repeat(7,24px) 30px;gap:4px;align-items:center;font-size:12.5px;margin:6px 0 4px}
+  .grid .h{font-size:11px;color:var(--mute);text-align:center}
+  .grid .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .grid .nm small{display:block;color:var(--mute);font-size:11px;margin-top:-2px}
+  .cl{height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:12px;color:var(--mute)}
+  .cl.hot{background:color-mix(in srgb,var(--coral) 26%,var(--card2));color:var(--coral-t);font-weight:700}
+  .cl.fut{background:none;border:1px dashed var(--line)}
+  .grid .tot{text-align:center;font-weight:600}
+  .lg{font-size:11px;color:var(--mute);margin:4px 0 8px;display:flex;gap:12px;flex-wrap:wrap}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+
+  .bars{display:flex;align-items:flex-end;gap:3px;height:120px;margin:10px 0 2px}
+  .bars .b{flex:1;position:relative;height:100%;display:flex;align-items:flex-end;justify-content:center;cursor:pointer}
+  .bars .w{position:absolute;bottom:0;left:0;right:0;border:1px solid var(--grey);border-radius:3px 3px 0 0;opacity:.55}
+  .bars .t{position:relative;width:62%;background:var(--accent);border-radius:3px 3px 0 0}
+  .bars .b.sel .t{background:var(--coral)}
+  .axis{display:flex;justify-content:space-between;font-size:11px;color:var(--mute)}
+
+  /* сводка */
+  .selwrap{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;margin-bottom:12px}
+  .selwrap b{font-weight:500} .selwrap span{color:var(--mute)}
+  .selwrap select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+  .card{--c:var(--violet);--g:var(--violet-g);--t:var(--violet-t);--f:16%;background:var(--card);border:1px solid color-mix(in srgb,var(--c) calc(var(--bw)*100%),var(--line));border-radius:16px;padding:12px 12px 10px;box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 10%,transparent),0 6px 22px var(--g)}
+  .card.coral{--c:var(--coral);--g:var(--coral-g);--t:var(--coral-t);--f:24%}
+  .card.dodo{--c:var(--dodo);--g:var(--dodo-g);--t:var(--dodo-t);--f:20%}
+  .card.mint{--c:var(--mint);--g:var(--mint-g);--t:var(--mint-t);--f:18%}
+  .card.grey{--c:var(--grey);--t:var(--mute);--f:0%;border-color:var(--line);box-shadow:none}
+  .chead{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+  .cico{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--c) var(--f),var(--card2));display:flex;align-items:center;justify-content:center;color:var(--c);flex:none}
+  .ctitle{font-size:15px;font-weight:600;color:var(--t)} .cmeta{font-size:12px;color:var(--mute)}
+  .cact{margin-left:auto;display:flex;gap:4px}
+  .teaser{display:flex;gap:9px;align-items:center;border:0;border-top:1px solid var(--line);padding:9px 2px 2px;font-size:13.5px;cursor:pointer;width:100%;background:none;color:var(--text);text-align:left}
+  .teaser .t{flex:1} .teaser .l2{display:block;color:var(--mute);margin-top:1px}
+  .card.coral .teaser .t{color:var(--coral-t)}
+  .teaser svg{flex:none;color:var(--c)}
+  .chev{color:var(--mute);transition:transform .15s} .open .chev{transform:rotate(180deg)}
+  .cbody{display:none;padding:10px 2px 2px;font-size:13.5px} .open .cbody{display:block}
+  .cbody p,.sum p{margin:0 0 9px}
+  .psg{display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px;margin:2px 0 10px}
+  .psg button{flex:1;border:0;background:none;color:var(--mute);font-size:12.5px;padding:5px 0;border-radius:8px;cursor:pointer}
+  .psg button.on{background:var(--card);color:var(--text);font-weight:600}
+  .openmon{display:block;width:100%;margin-top:8px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:13px;cursor:pointer}
+  .ssec{font-size:12px;color:var(--mute);margin:10px 0 4px}
+  .sum .rt .rr,.cbody .rt .rr{cursor:default}
+
+  .dimw{position:absolute;inset:0;background:var(--dim);display:flex;align-items:flex-end;z-index:5}
+  .sheet{width:100%;background:var(--bg);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:10px 16px 22px;max-height:90%;overflow:auto}
+  .grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 10px}
+  .shead{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+  .shead .tt{font-size:15px;font-weight:600;flex:1}
+  .sum{font-size:13.5px}
+  .toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);font-size:12.5px;padding:7px 14px;border-radius:10px;z-index:9;white-space:nowrap}
+
+  /* на пульсе */
+  .blk{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 10px 12px;margin-bottom:12px}
+  .blk h3{font-size:17px;margin:0 0 10px 4px}
+  .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+  .tile{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--text);background:none;border:0;padding:0;cursor:default}
+  .tile.go{cursor:pointer}
+  .tsq{position:relative;width:56px;height:56px;border-radius:14px;background:var(--card2);display:flex;align-items:center;justify-content:center}
+  .tile.go:hover .tsq{outline:1px solid var(--accent)}
+  .tdot{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:9px;padding:0 5px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
+  .stub{height:110px;border:1px dashed var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:12.5px}
+
+  .side{font-size:13.5px}
+  .side h2{font-size:15px;margin:0 0 8px}
+  .side ul{margin:0 0 6px;padding-left:20px} .side li{margin-bottom:6px}
+  .side .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .side .q{color:var(--mute)}
+  .side .now{border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+  .side table{border-collapse:collapse;width:100%;font-size:13px}
+  .side td{border-top:1px solid var(--line);padding:6px 6px 6px 0;vertical-align:top}
+  .side td:first-child{color:var(--mute);width:40%}
+  .side pre{white-space:pre-wrap;font:12px/1.45 ui-monospace,Consolas,monospace;background:var(--card2);border-radius:8px;padding:8px 10px;margin:6px 0 0;max-height:340px;overflow:auto}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Монитор сертификатов за опоздания: макет v2</h1>
+  <p class="sub">v1 + находки из монитора отзывов v3: шапка как в «Производительности» (стрелка и % к неделе назад), рестораны «число | %» с раскрытием на месте, значок копирования над списком, сертификат раскрывается в ленте, фильтры одной строкой, «Свой период», состояние «Идёт обновление». Данные условные, «сегодня» — чт 22.10, 12:38. Сравнить: <a href="v1.html" style="color:var(--accent)">открыть v1</a>.</p>
+  <div class="bar">
+    <span class="lbl">Роль</span>
+    <div class="seg" id="role"><button data-v="m" class="on">Управляющий · Чита-2</button><button data-v="p">Партнёр · сеть</button></div>
+    <span class="lbl">Экран</span>
+    <div class="seg" id="place"><button data-v="pulse">На пульсе</button><button data-v="focus">В фокусе</button><button data-v="mon" class="on">Монитор</button><button data-v="sheet">Монитор → Сводка</button></div>
+  </div>
+  <div class="bar">
+    <span class="lbl">Данные</span>
+    <div class="seg" id="data"><button data-v="yes" class="on">Сертификаты есть</button><button data-v="zero">Ни одного</button><button data-v="load">Идёт обновление</button><button data-v="none">Данных ещё нет</button></div>
+    <span class="lbl">День</span>
+    <div class="seg" id="day"><button data-v="thu" class="on">Четверг</button><button data-v="mon">Понедельник</button></div>
+    <span class="lbl">Тема</span>
+    <div class="seg" id="theme"><button data-v="auto" class="on">Авто</button><button data-v="dark">Тёмная</button><button data-v="light">Светлая</button></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div id="phoneWrap"></div>
+  <div class="side">
+    <div class="box now" id="now"></div>
+    <div class="box" id="copied"><h2>Что копирует значок копирования</h2><p class="q" style="margin:0">Нажмите значок над списком или в сводке — здесь появится скопированный текст.</p></div>
+    <div class="box">
+      <h2>Что взято из монитора отзывов (v1 → v2)</h2>
+      <table>
+        <tr><td>Три плитки: выдано · пик · повторы</td><td><b>Шапка как в «Производительности»:</b> четыре числа — сертификатов · доля от заказов · курьеров · с повтором. Под числом — % к тому же периоду неделю назад, стрелка в круге. Для всех четырёх рост — коралл, снижение — мята. Неделю назад 0 — прочерк. Пик переехал на вкладку «Часы».</td></tr>
+        <tr><td>Рестораны: число и «нед. назад» отдельными столбцами</td><td><b>«число | %»</b> в одну строку: сертификаты и доля от заказов. Под названием мелко — курьеры с повтором (кораллом) или число заказов. Сортировка — по курьерам с повтором, потом по числу. Стрелка у названия раскрывает сертификаты ресторана прямо в таблице.</td></tr>
+        <tr><td>Нет копирования</td><td><b>Значок копирования</b> справа над списком: на «Ресторанах» и «Секторах» — таблица (вставляется в Excel по столбцам), на «Курьерах» и «Ленте» — текст. Справа видно, что скопировано.</td></tr>
+        <tr><td>Строка ленты — только заказ, курьер, время</td><td><b>Нажатие раскрывает сертификат на месте:</b> когда принят заказ, к какому времени обещали, когда доставили, на сколько опоздали, «Скопировать». Раскрыл — значит прочитал, точка гаснет сама.</td></tr>
+        <tr><td>Лента без фильтров</td><td><b>Фильтры одной строкой:</b> «Все · 7», «С повтором · 2», «Без курьера · 1».</td></tr>
+        <tr><td>Три периода</td><td>Четыре: Сегодня · Вчера · С начала недели · <b>Свой период</b> (календарь).</td></tr>
+        <tr><td>Состояния: есть · ноль · нет данных</td><td>+ <b>«Идёт обновление»</b>: «Данные на 12:30. Обновляем — экран остаётся рабочим».</td></tr>
+        <tr><td>Сводка: только текст</td><td>Сверху <b>та же шапка из четырёх чисел</b>, у сети — таблица ресторанов «число | %». Копируется весь текст сводки.</td></tr>
+      </table>
+    </div>
+    <div class="box">
+      <h2>Что не взял и почему</h2>
+      <ul class="q">
+        <li>Ленту уведомлений на «На пульсе»: решили 22.10 — старые виджеты убираем, вход один (плитка).</li>
+        <li>Вкладку «Оценки» (распределение 5…1): у сертификатов нет шкалы, её роль играют «Часы».</li>
+        <li>Точку непрочитанных на плитке: у нас точка = курьеры с повтором (рекомендация 22.10, ждёт подтверждения).</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h2>Под вопросом — нужны поля базы</h2>
+      <ul class="q">
+        <li>Время заказа, обещанное время, время доставки и минуты опоздания в раскрытом сертификате — есть ли в базе? Если нет, раскрытие оставит только заказ, курьера, сектор и время.</li>
+        <li>Число заказов по ресторану и сектору — для доли.</li>
+        <li>Все цифры придуманы; сегодняшние события — со скрина ленты.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const NB=' ';
+const pl=(n,a,b,c)=>{const m=n%10,h=n%100;return (m===1&&h!==11)?a:(m>=2&&m<=4&&(h<12||h>14))?b:c;};
+const certs=n=>n+NB+pl(n,'сертификат','сертификата','сертификатов');
+const ordG=n=>n+NB+((n%10===1&&n%100!==11)?'заказа':'заказов');
+const pct=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',')+NB+'%';
+const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const CPSVG='<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 3.5v-.4A1.6 1.6 0 0 0 8.9 1.5H3.1A1.6 1.6 0 0 0 1.5 3.1v5.8a1.6 1.6 0 0 0 1.6 1.6h.4"/></svg>';
+const CPI='<button class="cpi" id="copyAll" title="Скопировать">'+CPSVG+'</button>';
+const CPS='<button class="ib copyS" title="Скопировать текст сводки">'+CPSVG+'</button>';
+
+// ---------- данные ----------
+const R=[
+ ['Архангельск-1',3,['Орлов С. И.','Ковалёв Н.','Сухих А.']],
+ ['Архангельск-2',3,['Мельников В.','Белова О. О.','Сорокина С.']],
+ ['Архангельск-3',3,['Рябов Е.','Шилова Т.','Попов Г.']],
+ ['Белогорск-1',3,['Климова Ю.','Панов А.','Зуев М.']],
+ ['Благовещенск-1',4,['Горшков И.','Данилов В.','Ли Р.']],
+ ['Благовещенск-2',3,['Осипов П.','Ткач Д.','Белых О.']],
+ ['Благовещенск-3',4,['Некрасов А.','Карпова Е.','Юн С.']],
+ ['Северодвинск-1',3,['Мальцев Л.','Носова И.','Буров К.']],
+ ['Тамбов-1',3,['Савин А.','Котова Ю.','Ершов В.']],
+ ['Тамбов-2',3,['Гришин Б.','Лосева А.','Фомин Р.']],
+ ['Тамбов-3',2,['Жуков М.','Агеева Н.']],
+ ['Чита-1',3,['Цыренов Б.','Дамдинов С.','Шульга Е.']],
+ ['Чита-2',4,['Гусев И. А.','Сафонов Д.','Ершова К.','Лаптев Р.']],
+ ['Чита-3',3,['Намсараев Т.','Кочнева В.','Будаев А.']]
+];
+const CH=R.findIndex(r=>r[0]==='Чита-2');
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mul(20261022);
+const dstr=d=>d.toISOString().slice(0,10);
+const addD=(s,n)=>{const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return dstr(d)};
+const dow=s=>(new Date(s+'T00:00:00Z').getUTCDay()+6)%7;
+const DN=['пн','вт','ср','чт','пт','сб','вс'];
+const DPREP=['в понедельник','во вторник','в среду','в четверг','в пятницу','в субботу','в воскресенье'];
+const fd=s=>DN[dow(s)]+' '+s.slice(8,10)+'.'+s.slice(5,7);
+const HW=[1,1,1,1,2,3,6,6,4,3,3,4,6,7,6,4,2,1];
+function pickHour(){const s=HW.reduce((a,b)=>a+b,0);let x=rnd()*s;for(let i=0;i<HW.length;i++){x-=HW[i];if(x<0)return 6+i}return 20}
+const EV=[]; let eid=1;
+function mk(d,t,r,c,s,n,read){const late=8+Math.floor(rnd()*30),prom=t-late,ot=prom-30-Math.floor(rnd()*16);EV.push({id:eid++,d,t,r,c,s,n,late,prom,ot,read:read!=null?read:true})}
+for(let day='2026-10-05';day<='2026-10-21';day=addD(day,1)){
+  R.forEach((r,ri)=>{
+    if(ri===CH && day>='2026-10-19') return;
+    const x=rnd(); const n=x<.5?0:x<.78?1:x<.94?2:3;
+    for(let k=0;k<n;k++){
+      const c=rnd()<.06?null:r[2][Math.floor(rnd()*r[2].length)];
+      mk(day,pickHour()*60+Math.floor(rnd()*60),ri,c,1+Math.floor(rnd()*r[1]),1+Math.floor(rnd()*420));
+    }
+  });
+}
+const S=(d,t,r,c,s,n,read)=>mk(d,+t.slice(0,2)*60+ +t.slice(3),R.findIndex(x=>x[0]===r),c,s,n,read);
+S('2026-10-19','12:55','Чита-2','Гусев И. А.',4,41); S('2026-10-19','13:20','Чита-2','Гусев И. А.',4,47);
+S('2026-10-19','19:02','Чита-2','Сафонов Д.',2,188); S('2026-10-19','20:40','Чита-2','Ершова К.',1,231);
+S('2026-10-20','13:41','Чита-2','Гусев И. А.',4,52); S('2026-10-20','19:12','Чита-2','Сафонов Д.',2,170);
+S('2026-10-20','19:40','Чита-2','Сафонов Д.',2,176); S('2026-10-20','21:05','Чита-2','Ершова К.',3,260);
+S('2026-10-21','13:15','Чита-2','Гусев И. А.',4,63); S('2026-10-21','13:52','Чита-2','Гусев И. А.',4,71);
+S('2026-10-21','18:30','Чита-2','Ершова К.',1,201);
+// неделю назад — чтобы в мокапе были видны проценты
+S('2026-10-12','13:30','Чита-2','Лаптев Р.',1,40); S('2026-10-12','19:50','Чита-2','Сафонов Д.',2,190);
+S('2026-10-13','14:10','Чита-2','Ершова К.',3,61); S('2026-10-13','20:20','Чита-2','Гусев И. А.',4,233);
+S('2026-10-14','12:40','Чита-2','Сафонов Д.',2,44); S('2026-10-14','13:05','Чита-2','Сафонов Д.',2,50);
+S('2026-10-14','19:30','Чита-2','Лаптев Р.',1,201); S('2026-10-14','21:10','Чита-2','Ершова К.',3,268);
+S('2026-10-15','06:40','Чита-2','Лаптев Р.',1,12); S('2026-10-15','08:15','Благовещенск-1','Ли Р.',3,30);
+S('2026-10-15','09:20','Архангельск-2','Сорокина С.',1,51); S('2026-10-15','10:05','Архангельск-2','Сорокина С.',1,58);
+S('2026-10-15','11:40','Тамбов-1','Котова Ю.',2,90); S('2026-10-15','12:10','Благовещенск-3','Юн С.',3,140);
+S('2026-10-22','06:13','Белогорск-1','Климова Ю.',3,35,true); S('2026-10-22','06:28','Благовещенск-1',null,2,1,true);
+S('2026-10-22','06:47','Благовещенск-1','Данилов В.',1,63,false); S('2026-10-22','07:47','Чита-2','Гусев И. А.',4,69,false);
+S('2026-10-22','07:59','Чита-2','Гусев И. А.',4,74,false); S('2026-10-22','10:22','Благовещенск-3','Некрасов А.',2,315,false);
+S('2026-10-22','11:27','Архангельск-2','Мельников В.',2,32,false);
+function hsh(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+const orders=(d,r,s)=>14+hsh(d+'|'+r+'|'+s)%24;
+const ordersRest=(dates,r,partial)=>dates.reduce((a,d,i)=>{let o=0;for(let s=1;s<=R[r][1];s++)o+=orders(d,r,s);return a+(partial&&i===dates.length-1?Math.round(o*.38):o)},0);
+
+// ---------- состояние ----------
+const st={role:'m',place:'mon',data:'yes',day:'thu',
+  focusRest:-1,cardOpen:true,sumP:'y',
+  mRest:-1,mP:'today',tab:null,hour:null,flt:'all',exp:null,openR:null,toast:''};
+const NOWM=12*60+38;
+const TODAY=()=>st.day==='mon'?'2026-10-19':'2026-10-22';
+const curRest=()=>st.role==='m'?CH:st.mRest;
+
+function span(kind){
+  const T=TODAY();
+  if(kind==='today') return {dates:[T],until:NOWM,cdates:[addD(T,-7)],lab:'Сегодня',clabel:fd(addD(T,-7))+' до '+hm(NOWM),week:null,partial:true};
+  if(kind==='y'){const y=addD(T,-1);return {dates:[y],cdates:[addD(y,-7)],lab:'Вчера',clabel:fd(addD(y,-7)),week:null}}
+  if(kind==='wl'){
+    const m=addD(T,-dow(T));const ds=[];for(let d=m;d<=T;d=addD(d,1))ds.push(d);
+    return {dates:ds,until:NOWM,untilDay:T,cdates:ds.map(d=>addD(d,-7)),lab:'С начала недели',clabel:'те же дни пр. недели',week:[0,1,2,3,4,5,6].map(i=>addD(m,i)),last:T,partial:true};
+  }
+  const y=addD(T,-1); const m=addD(y,-dow(y)); const ds=[];for(let d=m;d<=y;d=addD(d,1))ds.push(d);
+  const full=dow(T)===0;
+  return {dates:ds,cdates:ds.map(d=>addD(d,-7)),lab:full?'Прошлая неделя':'С начала недели',full,range:fd(m)+' – '+fd(y),clabel:full?'позапрошлая неделя':'те же дни пр. недели',week:[0,1,2,3,4,5,6].map(i=>addD(m,i)),last:y};
+}
+function pick(dates,rest,until,untilDay){
+  if(st.data==='zero'||st.data==='none') return [];
+  const ud=untilDay||(dates.length===1?dates[0]:null);
+  return EV.filter(e=>dates.includes(e.d)&&(rest<0||e.r===rest)&&!(until!=null&&e.d===ud&&e.t>until));
+}
+function pickC(sp,rest){
+  if(st.data==='zero'||st.data==='none') return [];
+  const ud=sp.untilDay?addD(sp.untilDay,-7):(sp.cdates.length===1?sp.cdates[0]:null);
+  return EV.filter(e=>sp.cdates.includes(e.d)&&(rest<0||e.r===rest)&&!(sp.until!=null&&e.d===ud&&e.t>sp.until));
+}
+function couriers(ev){
+  const m={};ev.forEach(e=>{const k=e.c?e.r+'|'+e.c:'null|'+e.r;(m[k]=m[k]||{c:e.c,r:e.r,ev:[]}).ev.push(e)});
+  return Object.values(m).map(x=>{const byD={};x.ev.forEach(e=>byD[e.d]=(byD[e.d]||0)+1);x.byD=byD;x.n=x.ev.length;x.rep=x.c?Object.values(byD).filter(v=>v>=2).length:0;x.ev.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.t-b.t);return x})
+    .sort((a,b)=>(!a.c)-(!b.c)||b.rep-a.rep||b.n-a.n||a.ev[0].t-b.ev[0].t);
+}
+const repKeys=ev=>{const s=new Set();couriers(ev).forEach(x=>{if(x.c)Object.entries(x.byD).forEach(([d,v])=>{if(v>=2)s.add(x.r+'|'+x.c+'|'+d)})});return s};
+const isRep=(e,ks)=>e.c&&ks.has(e.r+'|'+e.c+'|'+e.d);
+function sectors(ev,dates,rest){
+  const m={};ev.forEach(e=>{const k=e.r+'|'+e.s;(m[k]=m[k]||{r:e.r,s:e.s,n:0}).n++});
+  return Object.values(m).map(x=>{x.o=dates.reduce((a,d)=>a+orders(d,x.r,x.s),0);x.p=x.n/x.o*100;return x}).sort((a,b)=>b.p-a.p||b.n-a.n);
+}
+function hours(ev){const h=new Array(18).fill(0);ev.forEach(e=>{const i=Math.min(17,Math.max(0,Math.floor(e.t/60)-6));h[i]++});return h}
+function peak(ev){const h=hours(ev);let mx=0,ix=-1;h.forEach((v,i)=>{if(v>mx){mx=v;ix=i}});return ix<0?null:{h:ix+6,n:mx}}
+const rn=i=>R[i][0];
+const byT=(a,b)=>a.d>b.d?-1:a.d<b.d?1:b.t-a.t;
+function ordersOf(sp,rest,cmp){const ds=cmp?sp.cdates:sp.dates;return (rest<0?R.map((_,i)=>i):[rest]).reduce((a,i)=>a+ordersRest(ds,i,sp.partial),0)}
+function stats(ev,sp,rest,cmp){const L=couriers(ev);return {n:ev.length,share:ev.length/Math.max(1,ordersOf(sp,rest,cmp))*100,cour:L.filter(x=>x.c).length,rep:L.filter(x=>x.rep>0).length}}
+
+// ---------- шапка как в «Производительности» ----------
+function delta(x,c){ // для всех чисел рост = хуже
+  if(c==null||c===0) return {t:'—',k:'n',dir:0};
+  const d=(x-c)/c*100; const k=Math.abs(d)<0.005?'n':(d>0?'r':'g');
+  return {t:(d>0?'+':d<0?'−':'')+Math.abs(d).toFixed(2).replace('.',',')+'%',k,dir:Math.sign(Math.round(d*100))};
+}
+function arrow(dl){
+  const path=dl.dir>0?'M8 13V3M3.5 7.5L8 3l4.5 4.5':dl.dir<0?'M8 3v10M3.5 8.5L8 13l4.5-4.5':'M3 8h10';
+  return '<span class="ar '+dl.k+'"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+path+'"/></svg></span>';
+}
+const shareT=x=>(Math.round(x*10)/10).toFixed(1).replace('.',',')+'%';
+function headHTML(a,c){
+  const cell=(l,v,dl,red)=>'<div class="c"><span class="l">'+l+'</span><span class="nv">'+arrow(dl)+'<span class="num'+(red?' r':'')+'">'+v+'</span></span><span class="d '+dl.k+'">'+dl.t+'</span></div>';
+  return '<div class="pf">'+cell('Сертификатов',a.n,delta(a.n,c.n))+cell('Доля заказов',shareT(a.share),delta(a.share,c.n?c.share:0))+cell('Курьеров',a.cour,delta(a.cour,c.cour))+cell('С повтором',a.rep,delta(a.rep,c.rep),a.rep>0)+'</div>';
+}
+
+// ---------- элементы ----------
+function ceHTML(e,net,multi,ks){
+  const ex=st.exp===e.id;
+  return '<div class="ce'+(ex?' ex':'')+'" data-ce="'+e.id+'">'+(e.read?'':'<span class="unr"></span>')+'<span class="tm'+(multi?' w':'')+'">'+(multi?fd(e.d)+'<br>':'')+hm(e.t)+'</span><div class="b">'+
+    '<div>'+(e.c?esc(e.c):'<span class="gr">Курьер не найден</span>')+(isRep(e,ks)?'<span class="tag">2+ за день</span>':'')+'</div>'+
+    '<div class="mt">'+(net?'<b style="color:var(--text);font-weight:500">'+rn(e.r)+'</b> · ':'')+'заказ №'+e.n+' · сектор '+e.s+'</div>'+
+    '<div class="more">принят в '+hm(e.ot)+' · обещали к '+hm(e.prom)+' · доставлен в '+hm(e.t)+' · <span class="late">+'+e.late+' мин</span><button class="cp">Скопировать</button></div></div></div>';
+}
+function gridHTML(list,sp,net){
+  const w=sp.week; let h='<div class="grid"><span></span>'+DN.map(d=>'<span class="h">'+d+'</span>').join('')+'<span class="h">всего</span>';
+  list.forEach(x=>{
+    h+='<span class="nm">'+(x.c||'Курьер не найден')+(net?'<small>'+rn(x.r)+'</small>':'')+'</span>';
+    w.forEach(d=>{const v=x.byD[d]||0;const fut=d>sp.last;h+='<span class="cl'+(fut?' fut':'')+(x.c&&v>=2?' hot':'')+'">'+(v||'')+'</span>'});
+    h+='<span class="tot">'+x.n+'</span>';
+  });
+  return h+'</div><div class="lg"><span><span class="sw" style="background:color-mix(in srgb,var(--coral) 26%,var(--card2))"></span>2 и больше за день</span>'+(w.some(d=>d>sp.last)?'<span><span class="sw" style="border:1px dashed var(--line)"></span>дни ещё впереди</span>':'')+'</div>';
+}
+function restRows(ev,cev,sp,opts){
+  const rows=R.map((r,i)=>{const e=ev.filter(x=>x.r===i),c=cev.filter(x=>x.r===i),L=couriers(e);
+    const o=ordersRest(sp.dates,i,sp.partial),co=ordersRest(sp.cdates,i,sp.partial);
+    return {i,e,n:e.length,c:c.length,o,sh:e.length/o*100,csh:c.length/co*100,rep:L.filter(x=>x.rep>0).length}})
+   .filter(x=>!opts.onlyNonZero||x.n>0).sort((a,b)=>b.rep-a.rep||b.n-a.n||b.sh-a.sh);
+  const mv=(v,dl)=>'<span class="mv"><b>'+v+'</b><span class="sp">|</span><i class="'+dl.k+'">'+dl.t+'</i></span>';
+  let h='<div class="rt"><div class="rr hd"><span>Ресторан</span><span>Серт.</span><span>Доля заказов</span>'+(opts.copy?CPI:'<span></span>')+'</div>';
+  rows.forEach(x=>{
+    const open=opts.expand&&st.openR===x.i;
+    h+='<div class="rr'+(open?' on':'')+'"'+(opts.expand?' data-tog="'+x.i+'"':'')+'><div><div class="nm'+(x.n?'':' z')+'">'+rn(x.i)+(opts.expand?' <span class="chv'+(open?' up':'')+'">⌄</span>':'')+'</div><div class="s2'+(x.rep?' r':'')+'">'+(x.rep?x.rep+' '+pl(x.rep,'курьер','курьера','курьеров')+' с повтором':x.o+NB+pl(x.o,'заказ','заказа','заказов'))+'</div></div>'+mv(x.n,delta(x.n,x.c))+mv(shareT(x.sh),delta(x.sh,x.c?x.csh:0))+'<span></span></div>';
+    if(open){const ks=repKeys(x.e);h+='<div class="rexp">'+([...x.e].sort(byT).map(e=>ceHTML(e,false,sp.dates.length>1,ks)).join('')||'<div class="empty g">Сертификатов нет.</div>')+'<button class="go" data-rest="'+x.i+'">Открыть ресторан →</button></div>'}
+  });
+  return h+'</div>';
+}
+
+// ---------- монитор ----------
+function tabsFor(rest){return (st.role==='p'&&rest<0)?[['r','Рестораны'],['c','Курьеры'],['h','Часы'],['s','Секторы'],['f','Лента']]:[['c','Курьеры'],['h','По часам'],['s','Секторы'],['f','Лента']]}
+function mdata(){const rest=curRest(),sp=span(st.mP==='w'?'wl':st.mP);return {rest,sp,ev:pick(sp.dates,rest,sp.until,sp.untilDay),cev:pickC(sp,rest)}}
+function monitor(){
+  const {rest,sp,ev,cev}=mdata(), net=rest<0, multi=sp.dates.length>1;
+  const tabs=tabsFor(rest); if(!st.tab||!tabs.some(t=>t[0]===st.tab)) st.tab=tabs[0][0];
+  let h='<div class="mhead"><span class="tt">Сертификаты за опоздания</span><button class="sbtn" id="openSheet">Сводка</button><button class="ib" title="Закрыть">✕</button></div>';
+  h+='<div class="chips"><span class="chip">'+sp.lab+' ⌄<select id="mP"><option value="today">Сегодня</option><option value="y">Вчера</option><option value="w">С начала недели</option><option value="cust">Свой период…</option></select></span>';
+  if(st.role==='m') h+='<span class="chip">Чита-2</span>';
+  else { h+='<span class="chip">'+(net?'Все рестораны ('+R.length+')':rn(rest))+' ⌄<select id="mRest"><option value="-1">Все рестораны</option>'+R.map((r,i)=>'<option value="'+i+'">'+r[0]+'</option>').join('')+'</select></span>';
+    if(!net) h+='<span class="chip back" id="backAll">← вся сеть</span>'; }
+  h+='</div>';
+  if(st.data==='none') return h+'<div class="list"><div class="empty g">Данных о сертификатах пока нет. Монитор заполнится, как только они придут.</div></div>';
+  if(st.data==='load') h+='<div class="note">Данные на 12:30. Обновляем — экран остаётся рабочим.</div><div class="skel"></div>';
+  const A=stats(ev,sp,rest,false), C=stats(cev,sp,rest,true);
+  h+=headHTML(A,C);
+  h+='<div class="mtabs" id="mtabs">'+tabs.map(t=>'<button data-v="'+t[0]+'" class="'+(t[0]===st.tab?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
+  const emptyTxt={today:'Сегодня пока без сертификатов за опоздания.',y:'Вчера без сертификатов за опоздания.',w:'С начала недели без сертификатов за опоздания.'}[st.mP];
+  if(!ev.length && st.tab!=='h' && st.tab!=='r') return h+'<div class="list"><div class="empty">'+emptyTxt+'</div></div>';
+  const ks=repKeys(ev);
+  if(st.tab==='r') return h+restRows(ev,cev,sp,{expand:true,copy:true});
+  if(st.tab==='c'){
+    const L=couriers(ev);
+    h+='<div class="sec"><span><b>Курьеры</b> · '+L.filter(x=>x.c).length+'</span>'+CPI+'</div>';
+    if(sp.week) return h+'<div class="list" style="padding:6px 12px">'+gridHTML(L.slice(0,net?12:10),sp,net)+'</div>';
+    h+='<div class="list">';
+    L.forEach(x=>{const times=x.ev.map(e=>hm(e.t)).join(', ');
+      h+='<div class="row"><div class="f"><div'+(x.c?(x.rep?' style="font-weight:600"':''):' class="gr"')+'>'+(x.c||'Курьер не найден')+(x.rep?'<span class="tag">'+x.n+' за день</span>':'')+'</div><div class="sm">'+(net?rn(x.r)+' · ':'')+'сектор '+[...new Set(x.ev.map(e=>e.s))].join(', ')+' · '+times+'</div></div><span class="n" style="font-weight:'+(x.rep?700:400)+'">'+x.n+'</span></div>'});
+    return h+'</div>';
+  }
+  if(st.tab==='h'){
+    const a=hours(ev),b=hours(cev),mx=Math.max(1,...a,...b),pk=peak(ev);
+    h+='<div class="list"><div style="padding:8px 0 4px"><div class="lg" style="margin:0"><span><span class="sw" style="background:var(--accent)"></span>'+sp.lab.toLowerCase()+'</span><span><span class="sw" style="border:1px solid var(--grey)"></span>'+sp.clabel+'</span>'+(pk?'<span style="margin-left:auto">пик '+hm(pk.h*60)+' · '+pk.n+'</span>':'')+'</div>';
+    h+='<div class="bars">'+a.map((v,i)=>'<div class="b'+(st.hour===i+6?' sel':'')+'" data-h="'+(i+6)+'" title="'+hm((i+6)*60)+': '+v+' (было '+b[i]+')"><span class="w" style="height:'+(b[i]/mx*100)+'%"></span><span class="t" style="height:'+(v/mx*100)+'%"></span></div>').join('')+'</div>';
+    h+='<div class="axis"><span>06</span><span>10</span><span>14</span><span>18</span><span>23</span></div></div></div>';
+    const hh=st.hour!=null?st.hour:(pk?pk.h:null);
+    if(hh==null) return h+'<div class="list" style="margin-top:8px"><div class="empty">'+emptyTxt+'</div></div>';
+    const he=ev.filter(e=>Math.floor(e.t/60)===hh).sort(byT);
+    h+='<div class="sec" style="margin-top:10px"><span><b>'+hm(hh*60)+'–'+hm(hh*60+60)+'</b> · '+certs(he.length)+(st.hour==null?' · пик, нажмите на любой час':'')+'</span>'+CPI+'</div><div class="list">';
+    return h+(he.length?he.map(e=>ceHTML(e,net,multi,ks)).join(''):'<div class="empty g">В этот час сертификатов нет.</div>')+'</div>';
+  }
+  if(st.tab==='s'){
+    const sc=sectors(ev,sp.dates,rest);
+    h+='<div class="sec"><span><b>Секторы</b> · доля от заказов сектора</span>'+CPI+'</div><div class="list"><div class="row hd"><span class="f">'+(net?'Ресторан · сектор':'Сектор')+'</span><span class="n" style="width:44px">Серт.</span><span class="n" style="width:62px">Заказов</span><span class="n" style="width:56px">Доля</span></div>';
+    sc.forEach(x=>h+='<div class="row"><span class="f">'+(net?rn(x.r)+' · ':'')+'сектор '+x.s+'</span><span class="n" style="width:44px;font-weight:'+(x.p>=5?700:400)+'">'+x.n+'</span><span class="n gr" style="width:62px">'+x.o+'</span><span class="n'+(x.p>=5?' bad':'')+'" style="width:56px">'+pct(x.p)+'</span></div>');
+    return h+'</div>';
+  }
+  // лента
+  const nRep=ev.filter(e=>isRep(e,ks)).length,nNul=ev.filter(e=>!e.c).length;
+  const chip=(v,l,n)=>n||v==='all'?'<button data-flt="'+v+'" class="'+(st.flt===v?'on':'')+'">'+l+' · '+n+'</button>':'';
+  if((st.flt==='rep'&&!nRep)||(st.flt==='nul'&&!nNul)) st.flt='all';
+  h+='<div class="fl1">'+chip('all','Все',ev.length)+chip('rep','С повтором',nRep)+chip('nul','Без курьера',nNul)+'</div>';
+  const F=(st.flt==='rep'?ev.filter(e=>isRep(e,ks)):st.flt==='nul'?ev.filter(e=>!e.c):ev).sort(byT);
+  const unread=F.filter(e=>!e.read).length;
+  h+='<div class="sec"><span><b>Сертификаты</b> · '+F.length+(unread?' · новых '+unread:'')+'</span>'+CPI+'</div><div class="list">';
+  return h+F.map(e=>ceHTML(e,net,multi,ks)).join('')+'</div>';
+}
+function copyText(){
+  const {rest,sp,ev,cev}=mdata(), net=rest<0, multi=sp.dates.length>1, ks=repKeys(ev);
+  const per=sp.lab+(multi?' ('+fd(sp.dates[0])+' – '+fd(sp.dates[sp.dates.length-1])+')':', '+fd(sp.dates[0]));
+  const A=stats(ev,sp,rest,false),C=stats(cev,sp,rest,true);
+  let t='Сертификаты за опоздания · '+per+' · '+(net?'все рестораны':rn(rest))+'\n';
+  t+='Сертификатов '+A.n+' · доля заказов '+shareT(A.share)+' · курьеров '+A.cour+' · с повтором '+A.rep+'\n';
+  t+='Неделю назад: сертификатов '+C.n+' · доля '+shareT(C.share)+' · курьеров '+C.cour+' · с повтором '+C.rep+'\n';
+  if(st.tab==='r'){
+    t+='\nРесторан\tСертификатов\tк нед. назад, %\tДоля заказов, %\tк нед. назад, %\tКурьеров с повтором\n';
+    R.map((r,i)=>{const e=ev.filter(x=>x.r===i),c=cev.filter(x=>x.r===i),o=ordersRest(sp.dates,i,sp.partial),co=ordersRest(sp.cdates,i,sp.partial);return {i,n:e.length,c:c.length,sh:e.length/o*100,csh:c.length/co*100,rep:couriers(e).filter(x=>x.rep>0).length}})
+     .sort((a,b)=>b.rep-a.rep||b.n-a.n).forEach(x=>t+=rn(x.i)+'\t'+x.n+'\t'+delta(x.n,x.c).t+'\t'+shareT(x.sh).replace('%','')+'\t'+delta(x.sh,x.c?x.csh:0).t+'\t'+x.rep+'\n');
+    return t;
+  }
+  if(st.tab==='s'){
+    t+='\n'+(net?'Ресторан\t':'')+'Сектор\tСертификатов\tЗаказов\tДоля, %\n';
+    sectors(ev,sp.dates,rest).forEach(x=>t+=(net?rn(x.r)+'\t':'')+x.s+'\t'+x.n+'\t'+x.o+'\t'+shareT(x.p).replace('%','')+'\n');
+    return t;
+  }
+  if(st.tab==='c'){
+    t+='\n';couriers(ev).forEach(x=>t+=(x.c||'Курьер не найден')+(net?' ('+rn(x.r)+')':'')+' — '+x.n+(x.rep?', дней с 2+: '+x.rep:'')+' · '+x.ev.map(e=>(multi?fd(e.d)+' ':'')+hm(e.t)).join(', ')+'\n');
+    return t;
+  }
+  const L=st.tab==='h'?ev.filter(e=>Math.floor(e.t/60)===(st.hour!=null?st.hour:(peak(ev)||{}).h)):(st.flt==='rep'?ev.filter(e=>isRep(e,ks)):st.flt==='nul'?ev.filter(e=>!e.c):ev);
+  t+='\n';[...L].sort(byT).forEach(e=>t+=(multi?fd(e.d)+' ':'')+hm(e.t)+' · '+(net?rn(e.r)+' · ':'')+'заказ №'+e.n+' · '+(e.c||'курьер не найден')+' · сектор '+e.s+' · опоздание '+e.late+' мин'+(isRep(e,ks)?' · 2+ за день':'')+'\n');
+  return t;
+}
+
+// ---------- сводка ----------
+function repText(x,sp){
+  if(!sp.week) return x.ev.map(e=>hm(e.t)).join(', ');
+  const ds=Object.entries(x.byD).filter(([d,v])=>v>=2).sort();
+  if(!ds.length) return Object.keys(x.byD).length>1?'по одному в разные дни':'все '+DPREP[dow(x.ev[0].d)];
+  const same=ds.every(([d,v])=>v===ds[0][1]);
+  if(ds.length===1) return 'из них '+ds[0][1]+' '+DPREP[dow(ds[0][0])];
+  if(same) return 'по '+ds[0][1]+' '+ds.map(([d])=>DPREP[dow(d)]).join(' и ');
+  return ds.map(([d,v])=>v+' '+DPREP[dow(d)]).join(', ');
+}
+function compose(rest,P){
+  const net=rest<0, sp=span(P==='y'?'y':'w'), ev=pick(sp.dates,rest), cev=pickC(sp,rest);
+  const N=ev.length, A=stats(ev,sp,rest,false), Cs=stats(cev,sp,rest,true);
+  const per=P==='y'?'вчера, '+fd(sp.dates[0]):sp.lab.toLowerCase()+', '+sp.range;
+  const where=net?'вся сеть':rn(rest);
+  if(st.data==='none') return {tone:'grey',head:'Данных о сертификатах пока нет',l2:'',body:'<p>Данных о сертификатах за '+(P==='y'?'вчера':'эту неделю')+' пока нет. Сводка появится, как только они придут.</p>',text:'Данных о сертификатах пока нет.'};
+  const lab=sp.lab;
+  if(!N){const b=headHTML(A,Cs)+'<p>'+lab+' — без сертификатов за опоздания.</p>';return {tone:'mint',head:lab+': без сертификатов за опоздания',l2:'неделю назад — '+Cs.n,body:b,text:'Сертификаты за опоздания · '+per+' · '+where+'\n'+lab+' — без сертификатов. Неделю назад — '+Cs.n+'.'}}
+  const L=couriers(ev).filter(x=>x.c), lim=net?5:3, anyRep=L.some(x=>x.rep>0);
+  let top=L.slice(0,lim); const last=top[top.length-1];
+  if(last) L.slice(lim).forEach(x=>{if(x.n>=last.n&&top.length<lim+2)top.push(x)});
+  let b=headHTML(A,Cs);
+  let t='Сертификаты за опоздания · '+per+' · '+where+'\nСертификатов '+A.n+' (неделю назад '+Cs.n+') · доля заказов '+shareT(A.share)+' · курьеров '+A.cour+' · с повтором '+A.rep+'\n';
+  if(net){
+    b+='<div class="ssec">Рестораны с сертификатами</div>'+restRows(ev,cev,sp,{onlyNonZero:true});
+    const rs={};ev.forEach(e=>rs[e.r]=(rs[e.r]||0)+1);
+    t+='\nРестораны: '+Object.entries(rs).sort((a,b)=>b[1]-a[1]).map(([i,n])=>rn(+i)+' — '+n).join(', ')+'\n';
+  }
+  b+='<div class="ssec">Курьеры</div>';
+  t+='\nКурьеры:\n';
+  top.forEach((x,i)=>{
+    const tail=(i===0&&x.rep>0)?(P==='y'?' Что задержало эти заказы?':' Что повторяется в эти дни?'):'';
+    const line=x.c+(net?' ('+rn(x.r)+')':'')+' — '+x.n+(P==='y'?': ':', ')+repText(x,sp)+'.';
+    b+='<p>'+line+tail+'</p>'; t+='  '+line+'\n';
+  });
+  if(sp.week) b+=gridHTML(top,sp,net);
+  const nul=ev.filter(e=>!e.c).length;
+  if(nul){b+='<p class="muted">Без курьера в данных: '+nul+'.</p>';t+='Без курьера в данных: '+nul+'\n'}
+  const sc=sectors(ev,sp.dates,rest)[0], pk=peak(ev);
+  const sl='Больше всего — '+(net?rn(sc.r)+', ':'')+'сектор '+sc.s+': '+sc.n+' из '+ordG(sc.o)+' ('+pct(sc.p)+'). Пик — '+hm(pk.h*60)+'–'+hm(pk.h*60+60)+': '+certs(pk.n)+'.';
+  b+='<p class="muted">'+sl+'</p>'; t+=sl+'\n';
+  const lead=L[0];
+  const l2=anyRep?(lead.c+': '+(P==='y'?lead.n+' за день':lead.rep+' '+pl(lead.rep,'день','дня','дней')+' с повтором')):('доля заказов '+shareT(A.share)+' | '+delta(A.share,Cs.n?Cs.share:0).t);
+  return {tone:anyRep?'coral':'dodo',head:lab+': '+certs(N),l2,body:b,text:t};
+}
+function toneSvg(t){
+  if(t==='mint')return '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><path d="M6.3 10.2l2.7 2.7 4.8-5.2"/></svg>';
+  if(t==='grey')return '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="8"/><circle cx="6.6" cy="10" r=".9" fill="currentColor"/><circle cx="10" cy="10" r=".9" fill="currentColor"/><circle cx="13.4" cy="10" r=".9" fill="currentColor"/></svg>';
+  if(t==='dodo')return '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="2.2" fill="currentColor"/></svg>';
+  return '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><path d="M10 5.8v5"/><circle cx="10" cy="14.2" r=".6" fill="currentColor"/></svg>';
+}
+const CERTICO='<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 5.5h14v3a1.8 1.8 0 0 0 0 3.6v3H3v-3a1.8 1.8 0 0 0 0-3.6z"/><path d="M8 8.5l1.5 1.5L12.5 7"/></svg>';
+function periodSeg(){const full=dow(TODAY())===0;return '<div class="psg" id="sumP"><button data-v="y" class="'+(st.sumP==='y'?'on':'')+'">Вчера</button><button data-v="w" class="'+(st.sumP==='w'?'on':'')+'">'+(full?'Прошлая неделя':'С начала недели')+'</button></div>'}
+
+// ---------- экраны ----------
+function appShell(inner,act){
+  return '<div class="hdr"><div class="logo"><i></i>Spurt App</div><div class="ico"><span>▦</span><span>🔔</span><span>💬</span><span>☼</span><span class="ava"></span></div></div>'+
+    '<div class="tabs"><span'+(act==='pulse'?' class="act"':'')+'>На пульсе</span><span'+(act==='focus'?' class="act"':'')+'>В фокусе</span><span>На связи</span></div>'+inner;
+}
+function pulseScreen(){
+  const rest=st.role==='m'?CH:-1, sp=span('today'), ev=pick(sp.dates,rest,sp.until,sp.untilDay);
+  const reps=couriers(ev).filter(x=>x.rep>0).length, N=ev.length;
+  const tone=st.data==='none'?'grey':!N?'mint':reps?'coral':'dodo';
+  const col={coral:'var(--coral)',dodo:'var(--dodo)',mint:'var(--mint)',grey:'var(--grey)'}[tone];
+  const tk='<svg width="40" height="34" viewBox="0 0 44 36" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linejoin="round"><path d="M4 7h36v6a4 4 0 0 0 0 10v6H4v-6a4 4 0 0 0 0-10z"/><text x="22" y="22.5" text-anchor="middle" font-size="13" font-weight="700" fill="'+col+'" stroke="none" font-family="Arial">'+(st.data==='none'?'—':N)+'</text></svg>';
+  const star=n=>'<svg width="40" height="40" viewBox="0 0 44 44" fill="none" stroke="var(--mint)" stroke-width="2.2" stroke-linejoin="round"><path d="M22 4l5.3 11 12 1.6-8.8 8.3 2.2 11.9L22 31l-10.7 5.8 2.2-11.9-8.8-8.3 12-1.6z"/><text x="22" y="26.5" text-anchor="middle" font-size="10" font-weight="700" fill="var(--mint)" stroke="none" font-family="Arial">'+n+'</text></svg>';
+  const ic=(d,c)=>'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">'+d+'</svg>';
+  const t=(inner,l,go,dot)=>'<button class="tile'+(go?' go':'')+'"'+(go?' id="certTile" title="Открыть монитор"':'')+'><span class="tsq">'+inner+(dot?'<span class="tdot">'+dot+'</span>':'')+'</span><span>'+l+'</span></button>';
+  return '<div class="blk"><h3>Контроль качества</h3><div class="tiles">'+
+    t(star('4,9'),'Доставка')+t(star('4,8'),'Ресторан')+t(ic('<path d="M4 5h16v11H9l-5 4z"/>','#e86aa6'),'Отзывы')+
+    t(tk,'Сертификаты',true,reps||0)+t(ic('<path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="9" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="18" cy="8" r="2"/>','#7fb0f5'),'Баланс')+
+    '</div></div><div class="blk"><h3>Стопы</h3><div class="stub" style="height:72px">ряд стопов без изменений</div></div><div class="stub">Продажи и остальные виджеты</div>';
+}
+function focusScreen(){
+  const rest=st.role==='m'?CH:st.focusRest;
+  const sel=st.role==='m'?'<div class="selwrap"><b>Чита-2</b><span></span></div>':
+    '<div class="selwrap"><b>'+(rest<0?'Вся сеть · '+R.length+' ресторанов':rn(rest))+'</b><span>⌄</span><select id="fRest"><option value="-1">Вся сеть</option>'+R.map((r,i)=>'<option value="'+i+'"'+(i===rest?' selected':'')+'>'+r[0]+'</option>').join('')+'</select></div>';
+  const C=compose(rest,st.sumP);
+  return sel+'<div class="card '+C.tone+(st.cardOpen?' open':'')+'"><div class="chead"><div class="cico">'+CERTICO+'</div><div><div class="ctitle">Сводка. Сертификаты за опоздания</div><div class="cmeta">☀ '+(st.sumP==='y'?'за вчера':'за неделю')+' · данные на 10:15</div></div><div class="cact">'+CPS+'</div></div>'+
+    '<button class="teaser" id="tz">'+toneSvg(C.tone)+'<span class="t">'+C.head+(C.l2?'<span class="l2">'+C.l2+'</span>':'')+'</span><span class="chev">⌃</span></button>'+
+    '<div class="cbody">'+periodSeg()+C.body+'<button class="openmon" id="toMon">Открыть монитор</button></div></div>';
+}
+function sheet(){
+  const rest=curRest(), C=compose(rest,st.sumP);
+  return '<div class="dimw" id="dimS"><div class="sheet"><div class="grab"></div><div class="shead"><span class="tt">Сводка · '+(rest<0?'вся сеть':rn(rest))+'</span>'+CPS+'<button class="ib" id="closeSheet" title="Закрыть">✕</button></div>'+periodSeg()+'<div class="sum">'+C.body+'</div></div></div>';
+}
+function sideNow(){
+  const t={pulse:['«На пульсе»','Плитка как в v1: число сегодня, цвет по тону (коралл — повтор, оранжевый Додо — без повторов, мята — ни одного, серый — нет данных), красная точка — курьеры с 2+ за день. Нажатие открывает монитор; при повторах — на «Курьерах».'],
+    focus:['«В фокусе» → Сводка','Свёрнута до заголовка и второй строки. Внутри: «Вчера / С начала недели» (в понедельник — «Прошлая неделя»), та же шапка из четырёх чисел, у сети — рестораны «число | %», затем курьеры (на неделе — сетка по дням), сектор и пик. Значок копирования — весь текст сводки.'],
+    sheet:['Монитор → Сводка','Тот же текст для ресторана или сети, выбранных в мониторе. Только законченные периоды, от периода монитора не зависит.'],
+    mon:['Монитор','Шапка из четырёх чисел с % к неделе назад. У партнёра первая вкладка — «Рестораны»: стрелка у названия раскрывает сертификаты на месте, «Открыть ресторан →» — переход. На «Ленте» нажмите на сертификат — раскроется и станет прочитанным. Значок копирования — над каждым списком.']}[st.place];
+  const dayN=st.day==='mon'?'<p class="q" style="margin:6px 0 0">Режим «Понедельник»: «вчера» — воскресенье, вторая вкладка сводки — прошлая неделя целиком.</p>':'';
+  $('now').innerHTML='<h2>Сейчас на экране: '+t[0]+'</h2><p style="margin:0">'+t[1]+'</p>'+dayN;
+}
+function render(){
+  let inner;
+  if(st.place==='pulse') inner=appShell(pulseScreen(),'pulse');
+  else if(st.place==='focus') inner=appShell(focusScreen(),'focus');
+  else inner=monitor()+(st.place==='sheet'?sheet():'');
+  $('phoneWrap').innerHTML='<div class="phone">'+inner+(st.toast?'<div class="toast">'+st.toast+'</div>':'')+'</div>';
+  const mp=$('mP'); if(mp) mp.value=st.mP;
+  const mr=$('mRest'); if(mr) mr.value=st.mRest;
+  sideNow();
+}
+function segOn(id,v){[...$(id).children].forEach(x=>x.classList.toggle('on',x.dataset.v===v))}
+function setPlace(p){st.place=p;segOn('place',p);render()}
+function toast(s){st.toast=s;render();setTimeout(()=>{st.toast='';render()},1500)}
+function showCopied(t){try{navigator.clipboard.writeText(t)}catch(_){ }$('copied').innerHTML='<h2>Скопировано</h2><pre>'+esc(t)+'</pre>'}
+['role','place','data','day','theme'].forEach(id=>$(id).onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;const v=b.dataset.v;segOn(id,v);
+  if(id==='theme'){ if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v);return }
+  st[id]=v; if(id==='role'){st.mRest=-1;st.focusRest=-1;st.tab=null;st.hour=null;st.openR=null}
+  st.exp=null; render();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='mP'){ if(e.target.value==='cust'){e.target.value=st.mP;toast('Здесь календарь: с … по …');return} st.mP=e.target.value;st.hour=null;st.exp=null;st.openR=null;render()}
+  if(e.target.id==='mRest'){st.mRest=+e.target.value;st.tab=null;st.hour=null;st.openR=null;render()}
+  if(e.target.id==='fRest'){st.focusRest=+e.target.value;render()}
+});
+document.addEventListener('click',e=>{
+  const T=e.target;
+  if(!T.closest('#phoneWrap')) return;
+  if(T.closest('#copyAll')){showCopied(copyText());toast(st.tab==='r'||st.tab==='s'?'Таблица скопирована':'Текст скопирован');return}
+  if(T.closest('.copyS')){const C=compose(st.place==='focus'?(st.role==='m'?CH:st.focusRest):curRest(),st.sumP);showCopied(C.text);toast('Текст сводки скопирован');return}
+  if(T.closest('.cp')){const ce=T.closest('[data-ce]');const x=EV.find(v=>v.id===+ce.dataset.ce);showCopied(fd(x.d)+' '+hm(x.t)+' · '+rn(x.r)+' · заказ №'+x.n+' · '+(x.c||'курьер не найден')+' · сектор '+x.s+' · опоздание '+x.late+' мин');toast('Сертификат скопирован');return}
+  if(T.closest('#tz')){st.cardOpen=!st.cardOpen;render();return}
+  const sp=T.closest('#sumP button'); if(sp){st.sumP=sp.dataset.v;render();return}
+  if(T.closest('#toMon')){st.mRest=st.role==='m'?-1:st.focusRest;st.mP=st.sumP==='y'?'y':'w';st.tab=null;st.exp=null;setPlace('mon');return}
+  if(T.closest('#openSheet')){setPlace('sheet');return}
+  if(T.closest('#closeSheet')||T.id==='dimS'){setPlace('mon');return}
+  if(T.closest('#certTile')){const sp2=span('today'),ev=pick(sp2.dates,st.role==='m'?CH:-1,sp2.until,sp2.untilDay);st.mRest=-1;st.mP='today';st.tab=couriers(ev).some(x=>x.rep>0)?'c':null;st.exp=null;setPlace('mon');return}
+  const tb=T.closest('#mtabs button'); if(tb){st.tab=tb.dataset.v;st.hour=null;st.exp=null;render();return}
+  const go=T.closest('[data-rest]'); if(go){st.mRest=+go.dataset.rest;st.tab='f';st.openR=null;render();return}
+  const ce=T.closest('[data-ce]'); if(ce){const x=EV.find(v=>v.id===+ce.dataset.ce);x.read=true;st.exp=st.exp===x.id?null:x.id;render();return}
+  const tg=T.closest('[data-tog]'); if(tg){const i=+tg.dataset.tog;st.openR=st.openR===i?null:i;st.exp=null;render();return}
+  if(T.closest('#backAll')){st.mRest=-1;st.tab='r';render();return}
+  const fb=T.closest('[data-flt]'); if(fb){st.flt=fb.dataset.flt;render();return}
+  const hb=T.closest('[data-h]'); if(hb){const v=+hb.dataset.h;st.hour=st.hour===v?null:v;render();return}
+});
+render();
+</script>
+</body>
+</html>
