@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Монитор отзывов Spurt</title>
+<style>
+  :root{
+    --page:#0b0910; --bg:#120f1a; --card:#1b1626; --card2:#231c30; --line:#2c2439; --text:#efeaf6; --mute:#9a91a9;
+    --coral:#f2948a; --coral-g:rgba(242,148,138,.26); --coral-t:#f2948a;
+    --sand:#e6c58a;  --sand-g:rgba(230,197,138,.20); --sand-t:#e6c58a;
+    --dodo:#ff6900; --dodo-g:rgba(255,105,0,.22); --dodo-t:#ff8a3d;
+    --violet:#a99cf5; --violet-g:rgba(169,156,245,.15); --violet-t:#a99cf5;
+    --mint:#86d7b6;  --mint-g:rgba(134,215,182,.20); --mint-t:#86d7b6;
+    --grey:#8c8499;  --accent:#a99cf5; --bw:.45; --dim:rgba(5,3,9,.62);
+  }
+  :root[data-theme="light"]{
+    --page:#f1eff6; --bg:#faf9fd; --card:#ffffff; --card2:#f3f0f9; --line:#e2dcec; --text:#1d1726; --mute:#6c6379;
+    --coral:#d9695c; --coral-g:rgba(217,105,92,.20); --coral-t:#b5473d;
+    --sand:#b78a35;  --sand-g:rgba(183,138,53,.18); --sand-t:#8a6420;
+    --dodo:#ff6900; --dodo-g:rgba(255,105,0,.18); --dodo-t:#c94f00;
+    --violet:#6f5fdb; --violet-g:rgba(111,95,219,.13); --violet-t:#6f5fdb;
+    --mint:#2f9e78;  --mint-g:rgba(47,158,120,.17); --mint-t:#22795b;
+    --grey:#8a8397; --accent:#6f5fdb; --bw:.6; --dim:rgba(29,23,38,.38);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --page:#f1eff6; --bg:#faf9fd; --card:#ffffff; --card2:#f3f0f9; --line:#e2dcec; --text:#1d1726; --mute:#6c6379;
+      --coral:#d9695c; --coral-g:rgba(217,105,92,.20); --coral-t:#b5473d;
+      --sand:#b78a35;  --sand-g:rgba(183,138,53,.18); --sand-t:#8a6420;
+      --dodo:#ff6900; --dodo-g:rgba(255,105,0,.18); --dodo-t:#c94f00;
+      --violet:#6f5fdb; --violet-g:rgba(111,95,219,.13); --violet-t:#6f5fdb;
+      --mint:#2f9e78;  --mint-g:rgba(47,158,120,.17); --mint-t:#22795b;
+      --grey:#8a8397; --accent:#6f5fdb; --bw:.6; --dim:rgba(29,23,38,.38);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--text);font:14px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:24px 16px 56px}
+  button{font-family:inherit}
+  .top{max-width:1080px;margin:0 auto 16px}
+  h1{font-size:19px;margin:0 0 4px}
+  .sub{color:var(--mute);margin:0 0 12px;font-size:13px;max-width:860px}
+  .bar{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;margin-bottom:10px}
+  .bar .lbl{font-size:12px;color:var(--mute);margin-right:-6px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .seg button{background:var(--card);color:var(--mute);border:0;padding:6px 13px;font-size:13px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#120f1a;font-weight:600}
+  .layout{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:390px 1fr;gap:28px;align-items:start}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr} }
+
+  .phone{position:relative;width:390px;max-width:100%;min-height:780px;background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:16px 14px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35);margin:0 auto;overflow:hidden}
+  .hdr{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 10px}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--accent)}
+  .logo i{width:22px;height:22px;border-radius:7px;border:2px solid var(--accent);display:inline-block}
+  .ico{display:flex;gap:14px;align-items:center;color:var(--mute);font-size:16px}
+  .ava{width:26px;height:26px;border-radius:50%;background:#ff7a1a}
+  .tabs{display:flex;justify-content:space-around;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .tabs span{padding:8px 4px;color:var(--mute);font-size:14px}
+  .tabs .act{color:var(--text);border-bottom:2px solid var(--accent)}
+  .ib{background:none;border:0;color:var(--mute);cursor:pointer;padding:4px 6px;border-radius:8px;font-size:15px;line-height:1}
+  .ib:hover{background:var(--card2);color:var(--text)}
+  .muted{color:var(--mute);font-size:12.5px}
+
+  .mon{display:flex;flex-direction:column}
+  .mhead{display:flex;align-items:center;gap:8px;margin:2px 0 10px}
+  .mhead .tt{font-size:15.5px;font-weight:600;flex:1}
+  .mhead .upd{font-size:11.5px;color:var(--mute)}
+  .sbtn{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:5px 10px;border-radius:9px;border:1px dashed var(--line);color:var(--mute);background:none;cursor:default}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .chip{position:relative;font-size:12.5px;padding:6px 11px;border-radius:9px;background:var(--card);border:1px solid var(--line);color:var(--text)}
+  .chip select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+  .chip.back{cursor:pointer;color:var(--accent)}
+  .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+  .kpi.go{cursor:pointer} .kpi.go:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+  .kpi .l{font-size:11px;color:var(--mute)} .kpi .v{font-size:20px;font-weight:600;line-height:1.3} .kpi .s{font-size:11px;color:var(--mute)}
+  .kpi .v.bad{color:var(--coral-t)} .kpi .s.good{color:var(--mint-t)} .kpi .s.bad{color:var(--coral-t)}
+  .mtabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px;margin-bottom:8px}
+  .mtabs button{flex:1;border:0;background:none;color:var(--mute);font-size:12.5px;padding:6px 0;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .mtabs button.on{background:var(--card2);color:var(--text);font-weight:600}
+  .fl{display:flex;gap:6px;margin:0 0 8px;flex-wrap:wrap}
+  .fl button{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mute);cursor:pointer}
+  .fl button.on{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));color:var(--text);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+  .fl .sp{flex:1}
+  .list{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 12px}
+  .row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .row:last-child{border-bottom:0}
+  .row .f{flex:1;min-width:0} .row .sm{font-size:11.5px;color:var(--mute)}
+  .row .n{font-variant-numeric:tabular-nums;text-align:right}
+  .row.click{cursor:pointer} .row.click:hover .f > div:first-child{color:var(--accent)}
+  .row.hd{font-size:11px;color:var(--mute);padding:6px 0}
+  .gr{color:var(--mute)} .bad{color:var(--coral-t)}
+  .sec{font-size:12px;color:var(--mute);margin:12px 2px 6px;display:flex;justify-content:space-between}
+  .sec b{color:var(--text);font-weight:600}
+  .empty{padding:18px 6px;text-align:center;color:var(--mint-t);font-size:13.5px}
+  .empty.g{color:var(--mute)}
+
+  /* карточка отзыва */
+  .rv{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+  .rv:last-child{border-bottom:0}
+  .rv:hover .tx{color:var(--text)}
+  .st{flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+  .st.r1,.st.r2{background:color-mix(in srgb,var(--coral) 24%,var(--card2));color:var(--coral-t)}
+  .st.r3{background:color-mix(in srgb,var(--sand) 22%,var(--card2));color:var(--sand-t)}
+  .st.r4,.st.r5{background:color-mix(in srgb,var(--mint) 16%,var(--card2));color:var(--mint-t)}
+  .rv .b{flex:1;min-width:0}
+  .rv .tx{font-size:13.5px;line-height:1.42;color:var(--text);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .rv .tx.none{color:var(--mute);font-style:italic}
+  .rv .mt{font-size:11.5px;color:var(--mute);margin-top:3px}
+  .rv .mt b{color:var(--text);font-weight:500}
+  .unr{position:absolute;left:-8px;top:21px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .quiet{display:flex;align-items:center;gap:8px;padding:10px 0;font-size:12.5px;color:var(--mute);cursor:pointer}
+  .quiet .pp{display:flex;gap:4px;flex-wrap:wrap}
+  .quiet .pp span{padding:1px 7px;border-radius:6px;background:var(--card2)}
+
+  .dist{padding:8px 0}
+  .dr{display:grid;grid-template-columns:30px 1fr 64px;gap:8px;align-items:center;padding:6px 0;cursor:pointer;font-size:12.5px}
+  .dr .trk{height:16px;border-radius:5px;background:var(--card2);position:relative;overflow:hidden}
+  .dr .fil{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+  .dr .wk{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text);opacity:.55}
+  .dr .n{text-align:right;font-variant-numeric:tabular-nums}
+  .dr:hover .trk{outline:1px solid var(--accent)}
+
+  .dimw{position:absolute;inset:0;background:var(--dim);display:flex;align-items:flex-end;z-index:5}
+  .sheet{width:100%;background:var(--bg);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:10px 16px 22px;max-height:88%;overflow:auto}
+  .grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 10px}
+  .shead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .shead .tt{font-size:15px;font-weight:600;flex:1}
+  .stars{letter-spacing:2px;font-size:15px}
+  .kv{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;font-size:13px;margin:10px 0 12px}
+  .kv span:nth-child(odd){color:var(--mute)}
+  .quote{font-size:14.5px;line-height:1.5;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .acts{display:flex;gap:8px;margin-top:12px}
+  .acts button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:13px;cursor:pointer}
+  .acts button.q{border-style:dashed;color:var(--mute)}
+  .toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);font-size:12.5px;padding:7px 14px;border-radius:10px;z-index:9;white-space:nowrap}
+  .skel{height:58px;border-radius:10px;background:linear-gradient(90deg,var(--card2),var(--card),var(--card2));background-size:200% 100%;animation:sk 1.4s infinite;margin:8px 0}
+  @keyframes sk{to{background-position:-200% 0}}
+  .note{font-size:12px;color:var(--mute);background:var(--card2);border-radius:10px;padding:7px 10px;margin-bottom:10px}
+
+  /* «На пульсе» */
+  .blk{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 10px 12px;margin-bottom:12px}
+  .blk h3{font-size:17px;margin:0 0 10px 4px}
+  .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+  .tile{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--text);background:none;border:0;padding:0;cursor:default}
+  .tile.go{cursor:pointer}
+  .tsq{position:relative;width:56px;height:56px;border-radius:14px;background:var(--card2);display:flex;align-items:center;justify-content:center}
+  .tile.go:hover .tsq{outline:1px solid var(--accent)}
+  .tdot{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:9px;padding:0 5px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
+  .stub{height:110px;border:1px dashed var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:12.5px}
+  .ntf{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;cursor:pointer;display:flex;gap:10px}
+  .ntf:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+  .ntf .h{font-size:12px;color:var(--mute);display:flex;justify-content:space-between;margin-bottom:2px}
+  .ntf .h b{color:var(--text);font-weight:600}
+
+  .side{font-size:13.5px}
+  .side h2{font-size:15px;margin:0 0 8px}
+  .side ul,.side ol{margin:0 0 6px;padding-left:20px} .side li{margin-bottom:6px}
+  .side .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .side .q{color:var(--mute)}
+  .side .now{border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+  .side table{border-collapse:collapse;width:100%;font-size:13px}
+  .side td{border-top:1px solid var(--line);padding:6px 6px 6px 0;vertical-align:top}
+  .side td:first-child{color:var(--mute);width:44%}
+  .side .ask li{margin-bottom:8px}
+  /* v3 */
+  .st.r3{background:color-mix(in srgb,var(--coral) 24%,var(--card2));color:var(--coral-t)}
+  .kpis.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi .v small{font-size:13px;font-weight:400;color:var(--mute)}
+  .rv.ex .tx{-webkit-line-clamp:unset;display:block}
+  .rv .more{display:none;font-size:12px;color:var(--mute);margin-top:6px;align-items:center;gap:8px}
+  .rv.ex .more{display:flex}
+  .rv .cp{margin-left:auto;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:2px 8px;background:none;color:var(--mute);cursor:pointer}
+
+  .st.r4,.st.r5{background:color-mix(in srgb,var(--mint) 16%,var(--card2));color:var(--mint-t)}
+  .kpis.four{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+  .kpis.four .kpi{padding:7px 8px} .kpis.four .v{font-size:18px}
+  .v.good{color:var(--mint-t)}
+  .split{display:flex;height:8px;border-radius:5px;overflow:hidden;background:var(--card2);margin:8px 0 6px}
+  .split i{display:block} .split .b{background:var(--coral)} .split .g{background:var(--mint)}
+  .lgd{display:flex;justify-content:space-between;font-size:12.5px}
+  .hb{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;margin-bottom:10px}
+  .hb .top2{display:flex;justify-content:space-between;align-items:baseline}
+  .hb .big{font-size:20px;font-weight:600} .hb .big small{font-size:13px;font-weight:400;color:var(--mute)}
+  .hb .wk{font-size:11px;color:var(--mute);margin-top:4px}
+  .lst3 .r3{display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;font-size:13px;border-bottom:1px solid var(--line)}
+  .lst3 .r3:last-child{border-bottom:0} .lst3 .r3 b{font-size:15px}
+  .hline{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 8px;font-size:13px}
+  .hline b{font-size:17px}
+  .mini{display:flex;height:5px;border-radius:3px;overflow:hidden;background:var(--card2);margin-top:4px;width:100%}
+  .mini i{display:block} .mini .b{background:var(--coral)} .mini .g{background:var(--mint)}
+
+  .pf{border:1px solid var(--line);border-radius:14px;padding:10px 6px 9px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-bottom:10px;background:var(--card)}
+  .pf .c{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+  .pf .l{font-size:11.5px;color:var(--mute);white-space:nowrap}
+  .pf .nv{display:flex;align-items:center;gap:5px}
+  .pf .num{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+  .pf .d{font-size:11.5px;font-variant-numeric:tabular-nums}
+  .pf .d.g{color:var(--mint-t)} .pf .d.r{color:var(--coral-t)} .pf .d.n{color:var(--mute)}
+  .ar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+  .ar.g{background:color-mix(in srgb,var(--mint) 22%,transparent);color:var(--mint-t)}
+  .ar.r{background:color-mix(in srgb,var(--coral) 22%,transparent);color:var(--coral-t)}
+  .ar.n{background:var(--card2);color:var(--mute)}
+
+  .rt{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 12px}
+  .rt .rr{display:grid;grid-template-columns:minmax(0,1fr) 98px 92px 20px;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .rt .rr:last-child{border-bottom:0}
+  .rt .rr.hd{cursor:default;padding:7px 0;font-size:11.5px;color:var(--mute)}
+  .rt .rr.hd span{text-align:right} .rt .rr.hd span:first-child{text-align:left}
+  .rt .nm{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rt .sub{font-size:11.5px;color:var(--mute)}
+  .rt .mv{text-align:right;font-variant-numeric:tabular-nums}
+  .rt .mv{white-space:nowrap}
+  .rt .mv b{font-size:15px;font-weight:600}
+  .rt .mv .sp{color:var(--line);margin:0 5px}
+  .rt .mv i{font-style:normal;font-size:12px;display:inline-block;min-width:52px;text-align:left}
+  .rt .mv i.g{color:var(--mint-t)} .rt .mv i.r{color:var(--coral-t)} .rt .mv i.n{color:var(--mute)}
+  .rt .rr:hover .nm{color:var(--accent)}
+
+  .rt .chv{display:inline-block;color:var(--mute);font-size:13px;transition:transform .15s;margin-left:2px}
+  .rt .chv.up{transform:rotate(180deg)}
+  .rt .rr.on{border-bottom:0}
+  .rexp{border-bottom:1px solid var(--line);padding:0 0 8px}
+  .rexp .rv{padding:8px 0}
+  .rexp .more2{font-size:12px;color:var(--accent);cursor:pointer;padding:6px 0 0;background:none;border:0}
+  .fl1{display:flex;gap:6px;margin:0 0 8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .fl1 button{flex:none;white-space:nowrap;font-size:12.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--mute);cursor:pointer}
+  .fl1 button.on{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));color:var(--text);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+  .cpi{background:none;border:0;padding:2px 2px;color:var(--mute);cursor:pointer;line-height:0;border-radius:6px}
+  .cpi:hover{color:var(--accent);background:var(--card2)}
+  .sec{align-items:center}
+
+  /* сводка — как в мониторе сертификатов */
+  .selwrap{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;margin-bottom:12px}
+  .selwrap b{font-weight:500} .selwrap span{color:var(--mute)}
+  .selwrap select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+  .card{--c:var(--violet);--g:var(--violet-g);--t:var(--violet-t);--f:16%;background:var(--card);border:1px solid color-mix(in srgb,var(--c) calc(var(--bw)*100%),var(--line));border-radius:16px;padding:12px 12px 10px;box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 10%,transparent),0 6px 22px var(--g)}
+  .card.coral{--c:var(--coral);--g:var(--coral-g);--t:var(--coral-t);--f:24%} .card.mint{--c:var(--mint);--g:var(--mint-g);--t:var(--mint-t);--f:18%}
+  .card.grey{--c:var(--grey);--t:var(--mute);--f:0%;border-color:var(--line);box-shadow:none}
+  .chead{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+  .cico{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--c) var(--f),var(--card2));display:flex;align-items:center;justify-content:center;color:var(--c);flex:none}
+  .ctitle{font-size:15px;font-weight:600;color:var(--t)} .cmeta{font-size:12px;color:var(--mute)}
+  .cact{margin-left:auto;display:flex;gap:4px}
+  .teaser{display:flex;gap:9px;align-items:center;border:0;border-top:1px solid var(--line);padding:9px 2px 2px;font-size:13.5px;cursor:pointer;width:100%;background:none;color:var(--text);text-align:left}
+  .teaser .t{flex:1} .teaser .l2{display:block;color:var(--mute);margin-top:1px}
+  .card.coral .teaser .t{color:var(--coral-t)}
+  .teaser svg{flex:none;color:var(--c)}
+  .chev{color:var(--mute);transition:transform .15s} .open .chev{transform:rotate(180deg)}
+  .cbody{display:none;padding:10px 2px 2px;font-size:13.5px} .open .cbody{display:block}
+  .cbody p,.sum p{margin:0 0 9px}
+  .psg{display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px;margin:2px 0 10px}
+  .psg button{flex:1;border:0;background:none;color:var(--mute);font-size:12.5px;padding:5px 0;border-radius:8px;cursor:pointer}
+  .psg button.on{background:var(--card);color:var(--text);font-weight:600}
+  .openmon{display:block;width:100%;margin-top:8px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:13px;cursor:pointer}
+  .sumrv{display:flex;justify-content:space-between;align-items:center;width:100%;margin:10px 0 6px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:13px;cursor:pointer}
+  .sumrv .chv{color:var(--mute);transition:transform .15s} .sumrv.on .chv{transform:rotate(180deg)}
+  .ssec{font-size:12px;color:var(--mute);margin:10px 0 4px}
+  .sum .rv,.cbody .rv{cursor:default}
+  .sbtn.on{border:1px solid color-mix(in srgb,var(--accent) 60%,var(--line));color:var(--accent);cursor:pointer}
+  .cbar{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 2px;font-size:12px;color:var(--mute)}
+  .cbtn{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:4px 10px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+  .cbtn:hover{border-color:color-mix(in srgb,var(--accent) 60%,var(--line))}
+  .side pre{white-space:pre-wrap;font:12px/1.45 ui-monospace,Consolas,monospace;background:var(--card2);border-radius:8px;padding:8px 10px;margin:6px 0 0;max-height:340px;overflow:auto}
+  .side .was{color:var(--mute);text-decoration:line-through}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Монитор отзывов: макет v3 (упрощённый)</h1>
+  <p class="sub">Тот же смысл, что в v2, меньше элементов: два числа вместо трёх, без фильтров, без вкладки «Оценки», без всплывающего окна — отзыв раскрывается прямо в ленте. Данные условные, «сегодня» — чт 22.10, 13:00.</p>
+  <div class="bar">
+    <span class="lbl">Роль</span>
+    <div class="seg" id="role"><button data-v="m" class="on">Управляющий · Благовещенск-2</button><button data-v="p">Партнёр · сеть</button></div>
+    <span class="lbl">Экран</span>
+    <div class="seg" id="place"><button data-v="pulse">На пульсе</button><button data-v="focus">В фокусе</button><button data-v="mon" class="on">Монитор</button><button data-v="sheet">Монитор → Сводка</button></div>
+    <span class="lbl">Данные</span>
+    <div class="seg" id="data"><button data-v="yes" class="on">Отзывы есть</button><button data-v="zero">Ни одного</button><button data-v="load">Идёт обновление</button></div>
+    <span class="lbl">Тема</span>
+    <div class="seg" id="theme"><button data-v="auto" class="on">Авто</button><button data-v="dark">Тёмная</button><button data-v="light">Светлая</button></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div id="phoneWrap"></div>
+  <div class="side">
+    <div class="box now" id="now"></div>
+    <div class="box"><h2>Шапка (22.10)</h2><ul>
+<li>Как в виджете «Производительность»: четыре числа — всего · средняя · плохих (1–3) · хороших (4–5). Под числом — изменение к тому же периоду неделю назад в процентах, стрелка в круге с заливкой.</li>
+<li>Зелёный — стало лучше, коралл — хуже. Для «Плохих» наоборот: рост — коралл.</li>
+<li>Неделю назад было 0 — вместо процента прочерк (деление на ноль).</li>
+<li><b>Рестораны</b>: в строке только средняя и плохие — то, по чему рестораны сравнивают; так же, как в шапке: в одну строку «число | % к неделе назад» («3,6 | −28,57%»). Отзывов — мелко под названием. Сортировка — по числу плохих. Стрелка вниз у названия: нажатие раскрывает отзывы ресторана прямо в таблице (плохие сверху), повторное — сворачивает. Хорошие = всего − плохие, в таблице не дублируются.</li>
+</ul></div>
+    <div class="box" id="copied"><h2>Что копирует «Скопировать»</h2><p class="q" style="margin:0">Нажмите кнопку над лентой — здесь появится скопированный текст.</p></div>
+    <div class="box">
+      <h2>Что упростили (v2 → v3)</h2>
+      <table>
+        <tr><td>Три числа: отзывов · средняя · плохих</td><td>Вернули всего и хорошие (22.10): 4 числа, 4 варианта расположения — переключатель «Шапка»</td></tr>
+        <tr><td>Фильтры «Все · 1–3 · С комментарием»</td><td><b>Возвращены (22.10)</b> одной строкой: «Все · 7», «3 и ниже · 3», «С комментарием · 4». Было в v3: Убраны. Лента и так начинается с плохих, оценки без текста и так свёрнуты — фильтры повторяли группы. Доля «100 %» переехала в число «Плохих»</td></tr>
+        <tr><td>Вкладка «Оценки» (5…1)</td><td>Возвращена (22.10): полосы 5…1 с долей, черта — неделю назад; нажатие на строку открывает ленту только с этой оценкой</td></tr>
+        <tr><td>Вкладки у управляющего</td><td>Нет вкладок вообще — один экран. У партнёра две: Рестораны · Лента (Рестораны — первая и открываются по умолчанию)</td></tr>
+        <tr><td>Три группы: плохие · хорошие с текстом · без текста</td><td>Две: <b>Плохие · 1–3</b> и <b>Хорошие · 4–5</b>; оценки без текста — одна строка в конце хороших</td></tr>
+        <tr><td>Всплывающее окно «Отзыв целиком»</td><td>Нажатие раскрывает карточку на месте: полный текст, время заказа, «Скопировать». Других полей нет — окну нечего добавить</td></tr>
+        <tr><td>Кнопка «Отметить прочитанным»</td><td>Раскрыл — значит прочитал. Точка гаснет сама</td></tr>
+        <tr><td>Три цвета оценки: коралл · песок · мята</td><td>Вернули мяту для 4–5 (22.10): плохие коралл, хорошие мята — в квадратах, шапке и полосах</td></tr>
+        <tr><td>5 периодов</td><td>4: Сегодня · Вчера · С начала недели · Свой период — как в мониторе сертификатов</td></tr>
+        <tr><td>Значок копирования над таблицей (сеть / ресторан)</td><td>Значок без подписи справа в заголовке списка (как было в приложении): копирует всё выбранное — сеть по ресторанам или один ресторан; на «Ресторанах» — таблицу (вставляется в Excel по столбцам)</td></tr>
+        <tr><td>Строка ресторана: 3 числа + строка «неделю назад»</td><td>Средняя и «плохих 6 из 20 · 30 %»; ниже одной строкой, как было неделю назад</td></tr>
+      </table>
+    </div>
+    <div class="box">
+      <h2>Что не трогал и почему</h2>
+      <ul class="q">
+        <li>Сравнение с неделей назад — единственное, что отвечает «это нормально или нет».</li>
+        <li>Плитка и лента на «На пульсе» — это вход, без них монитор никто не откроет.</li>
+        <li>Кнопка «Сводка» — место под следующий шаг.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h2>Решено раньше (22.10)</h2>
+      <ul class="q">
+        <li>Сравнение всегда с неделей назад; в подписи — сам день («чт 15.10: 5») или «пр. неделя», без отдельной поясняющей строки.</li>
+        <li>«100 %» — доля отзывов под фильтром; при «Все» всегда 100.</li>
+        <li>Глаз открывал комментарий — убран.</li>
+        <li>Плохие = 1–3. Хорошие уведомления остаются, ниже плохих. Лента — сначала плохие.</li>
+        <li>Других полей по отзыву в базе нет.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const NB=' ';
+const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const avg=a=>a.length?(a.reduce((s,x)=>s+x.r,0)/a.length):null;
+const f1=x=>x==null?'—':(Math.round(x*10)/10).toFixed(1).replace('.',',');
+const pc=(n,N)=>(N?Math.round(n/N*100):0)+NB+'%';
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+// ---------- данные (те же, что в v2) ----------
+const R=['Белогорск-1','Благовещенск-1','Благовещенск-2','Благовещенск-3','Чита-1','Чита-3'];
+const ME=2;
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mul(20261022);
+const dstr=d=>d.toISOString().slice(0,10);
+const addD=(s,n)=>{const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return dstr(d)};
+const dow=s=>(new Date(s+'T00:00:00Z').getUTCDay()+6)%7;
+const DN=['пн','вт','ср','чт','пт','сб','вс'];
+const fd=s=>DN[dow(s)]+' '+s.slice(8,10)+'.'+s.slice(5,7);
+const TODAY='2026-10-22', NOWM=13*60;
+const BAD=['Вместо колы положили морс, а кола была в чеке.',
+ 'Большой додстер пришёл холодный и разваливался в руках, есть было невозможно.',
+ 'Мало того, что везли полтора часа, так ещё и пицца приехала холодная. Звонили — никто не ответил.',
+ 'Всегда заказываем у вас, но сегодня пицца была сырая в середине. Очень жаль.',
+ 'Покет-пицца слепилась в коробке, начинка вытекла на дно.',
+ 'Курьер не поднялся, сказал спускаться самой. Седьмой этаж, лифт работает.',
+ 'Перепутали пиццу: вместо пепперони привезли ветчину и грибы.',
+ 'Тесто подгорело снизу, горчит.',
+ 'Ждали заказ в зале 40 минут, хотя на кассе сказали 15.',
+ 'Пролили морс, пакет весь мокрый и липкий.',
+ 'Сыра почти нет, одно тесто и соус.'];
+const MID=['Пицца нормальная, но остыла, пока везли.','Вкусно, но очень долго.','Додстер суховат.','Порезали неровно, куски разного размера.'];
+const GOOD=['Пицца была вкусная. Спасибо!','Прикольный курьер, всё быстро и вежливо.','Вкусно','Приехало как на картинке, горячее.','Молодцы, красавцы!','Привезли быстро, всё горячее.','Спасибо! Очень вкусно, будем заказывать ещё.','Как всегда отлично','Курьер вежливый, пицца горячая.','Хорошо, но соуса хотелось бы побольше.'];
+const pickA=a=>a[Math.floor(rnd()*a.length)];
+const RV=[]; let id=1;
+for(let d='2026-10-12';d<='2026-10-22';d=addD(d,1)){
+  R.forEach((r,ri)=>{
+    const n=4+Math.floor(rnd()*6);
+    for(let k=0;k<n;k++){
+      const x=rnd(); const rt=x<.66?5:x<.78?4:x<.85?3:x<.92?2:1;
+      const hasC=rt<=3?rnd()<.85:rnd()<.35;
+      const c=hasC?(rt<=2?pickA(BAD):rt===3?pickA(MID):pickA(GOOD)):null;
+      const t=10*60+Math.floor(rnd()*13*60); const ot=t-30-Math.floor(rnd()*200);
+      if(d===TODAY && t>NOWM-30) continue;
+      if(d===TODAY && ri===ME) continue;
+      RV.push({id:id++,d,t,ot,ri,r:rt,c,o:100+Math.floor(rnd()*300),read:d<TODAY||rnd()<.5});
+    }
+  });
+}
+const S=(t,r,rt,c,o,read)=>RV.push({id:id++,d:TODAY,t:+t.slice(0,2)*60+ +t.slice(3),ot:+t.slice(0,2)*60+ +t.slice(3)-55,ri:R.indexOf(r),r:rt,c,o,read});
+S('12:27','Благовещенск-2',2,'Вместо куриных кусочков привезли картофель дольками. Заказывали именно кусочки, ребёнок расстроился.',355,false);
+S('11:52','Благовещенск-2',2,'К сожалению, не положили соус( Опять. Уже третий раз за месяц.',295,false);
+S('12:06','Благовещенск-1',5,'Пицца была вкусная. Спасибо!',219,true);
+S('11:02','Благовещенск-1',1,'Большой додстер пришёл холодный и разваливался в руках, есть было невозможно.',181,false);
+S('10:40','Благовещенск-2',2,'Мало того, что везли полтора часа, так ещё и пицца приехала холодная. Звонили — никто не ответил.',276,true);
+S('09:58','Благовещенск-2',5,'Прикольный курьер, всё быстро и вежливо.',215,true);
+S('10:15','Благовещенск-2',5,null,203,true);S('10:31','Благовещенск-2',4,null,207,true);S('11:20','Благовещенск-2',5,null,240,true);
+S('12:40','Чита-1',5,'Молодцы, красавцы!',330,false);S('12:10','Чита-1',5,'Привезли быстро, всё горячее.',304,true);
+S('11:44','Чита-3',3,'Вкусно, но очень долго.',321,false);
+
+// ---------- состояние ----------
+const st={sumRv:false,sumP:'y',cardOpen:true,focusRest:-1,flt:'all',star:0,openR:null,role:'m',place:'mon',data:'yes',theme:'auto',P:'today',rest:-1,tab:'f',exp:null,quietOpen:false,toast:''};
+function span(P){
+  if(P==='today') return {ds:[TODAY],cds:[addD(TODAY,-7)],until:NOWM,lab:'Сегодня',cmp:fd(addD(TODAY,-7))};
+  if(P==='y'){const y=addD(TODAY,-1);return {ds:[y],cds:[addD(y,-7)],lab:'Вчера',cmp:fd(addD(y,-7))}}
+  const m=addD(TODAY,-dow(TODAY));const ds=[];for(let d=m;d<=TODAY;d=addD(d,1))ds.push(d);return {ds,cds:ds.map(d=>addD(d,-7)),until:NOWM,lab:'С начала недели',cmp:'пр. неделя'};
+}
+const curRest=()=>st.role==='m'?ME:st.rest;
+function sel(ds,rest,until,last){
+  if(st.data==='zero') return [];
+  return RV.filter(x=>ds.includes(x.d)&&(rest<0||x.ri===rest)&&!(until!=null&&x.d===last&&x.t>until));
+}
+function data(){const sp=span(st.P),rest=curRest();return {sp,rest,ev:sel(sp.ds,rest,sp.until,sp.ds[sp.ds.length-1]),cev:sel(sp.cds,rest,sp.until,sp.cds[sp.cds.length-1])}}
+const isBad=x=>x.r<=3;
+const byT=(a,b)=>a.d>b.d?-1:a.d<b.d?1:b.t-a.t;
+
+// ---------- монитор ----------
+const CPI='<button class="cpi" id="copyAll" title="Скопировать"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 3.5v-.4A1.6 1.6 0 0 0 8.9 1.5H3.1A1.6 1.6 0 0 0 1.5 3.1v5.8a1.6 1.6 0 0 0 1.6 1.6h.4"/></svg></button>';
+function rvHTML(x,net,multi){
+  const ex=st.exp===x.id, wait=x.t-x.ot;
+  return '<div class="rv'+(ex?' ex':'')+'" data-rv="'+x.id+'">'+(x.read?'':'<span class="unr"></span>')+'<span class="st r'+x.r+'">'+x.r+'</span><div class="b">'+
+    '<div class="tx'+(x.c?'':' none')+'">'+(x.c?esc(x.c):'без комментария')+'</div>'+
+    '<div class="mt">'+(net?'<b>'+R[x.ri]+'</b> · ':'')+'заказ №'+x.o+' · '+(multi?fd(x.d)+', ':'')+hm(x.t)+'</div>'+
+    '<div class="more">заказан в '+hm(x.ot)+' · отзыв через '+(wait>=60?Math.floor(wait/60)+' ч '+(wait%60)+' мин':wait+' мин')+(x.c?'<button class="cp">Скопировать</button>':'')+'</div></div></div>';
+}
+function feed(ev,net,multi){
+  const bad=ev.filter(isBad).sort((a,b)=>a.r-b.r||byT(a,b));
+  const good=ev.filter(x=>!isBad(x)&&x.c).sort(byT), quiet=ev.filter(x=>!isBad(x)&&!x.c).sort(byT);
+  let h='<div class="sec" id="secBad"><span><b>Плохие</b> · 1–3</span>'+CPI+'</div><div class="list">';
+  h+=bad.length?bad.map(x=>rvHTML(x,net,multi)).join(''):'<div class="empty">Плохих отзывов нет.</div>';
+  h+='</div>';
+  if(good.length||quiet.length){
+    h+='<div class="sec" id="secGood"><span><b>Хорошие</b> · 4–5</span><span>'+(good.length+quiet.length)+'</span></div><div class="list">'+good.map(x=>rvHTML(x,net,multi)).join('');
+    if(quiet.length){const c5=quiet.filter(x=>x.r===5).length,c4=quiet.length-c5;
+      h+=st.quietOpen?quiet.map(x=>rvHTML(x,net,multi)).join('')+'<div class="quiet" id="quiet">Свернуть ⌃</div>'
+        :'<div class="quiet" id="quiet">Без комментария: <span class="pp">'+(c5?'<span>5 ★ × '+c5+'</span>':'')+(c4?'<span>4 ★ × '+c4+'</span>':'')+'</span><span style="margin-left:auto">показать ⌄</span></div>';}
+    h+='</div>';
+  }
+  return h;
+}
+function delta(x,c,upGood){
+  // изменение к неделе назад, как в виджете производительности
+  if(x==null||c==null||c===0) return {t:'—',k:'n',dir:0};
+  const d=(x-c)/c*100, k=Math.abs(d)<0.005?'n':((d>0)===upGood?'g':'r');
+  return {t:(d>0?'+':d<0?'−':'')+Math.abs(d).toFixed(2).replace('.',',')+'%',k,dir:Math.sign(Math.round(d*100))};
+}
+function absd(x,c,dec,upGood){
+  if(x==null||c==null) return {t:'—',k:'n'};
+  const d=Math.round((x-c)*Math.pow(10,dec))/Math.pow(10,dec);
+  const k=d===0?'n':((d>0)===upGood?'g':'r');
+  return {t:(d>0?'+':d<0?'−':'')+Math.abs(d).toFixed(dec).replace('.',','),k};
+}
+function arrow(dl){
+  const path=dl.dir>0?'M8 13V3M3.5 7.5L8 3l4.5 4.5':dl.dir<0?'M8 3v10M3.5 8.5L8 13l4.5-4.5':'M3 8h10';
+  return '<span class="ar '+dl.k+'"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+path+'"/></svg></span>';
+}
+function headHTML(ev,cev){
+  const N=ev.length,C=cev.length,B=ev.filter(isBad).length,CB=cev.filter(isBad).length,G=N-B,CG=C-CB,a=avg(ev),ca=avg(cev);
+  const cell=(l,v,dl)=>'<div class="c"><span class="l">'+l+'</span><span class="nv">'+arrow(dl)+'<span class="num">'+v+'</span></span><span class="d '+dl.k+'">'+dl.t+'</span></div>';
+  return '<div class="pf">'+cell('Всего',N,delta(N,C,true))+cell('Средняя',f1(a),delta(a,ca,true))+cell('Плохих',B,delta(B,CB,false))+cell('Хороших',G,delta(G,CG,true))+'</div>';
+}
+function monitor(){
+  const {sp,rest,ev,cev}=data(), net=rest<0, multi=sp.ds.length>1;
+  const partnerNet=st.role==='p'&&net; if(!partnerNet&&st.tab==='r') st.tab='f';
+  let h='<div class="mon"><div class="mhead"><span class="tt">Отзывы</span><button class="sbtn on" id="openSheet">Сводка</button><button class="ib" title="Закрыть">✕</button></div>';
+  h+='<div class="chips"><span class="chip">'+sp.lab+' ⌄<select id="selP"><option value="today">Сегодня</option><option value="y">Вчера</option><option value="w">С начала недели</option><option value="cust">Свой период…</option></select></span>';
+  if(st.role==='m') h+='<span class="chip">Благовещенск-2</span>';
+  else { h+='<span class="chip">'+(net?'Все рестораны ('+R.length+')':R[rest])+' ⌄<select id="selR"><option value="-1">Все рестораны</option>'+R.map((r,i)=>'<option value="'+i+'">'+r+'</option>').join('')+'</select></span>';
+    if(!net) h+='<span class="chip back" id="backAll">← вся сеть</span>'; }
+  h+='</div>';
+  if(st.data==='load') h+='<div class="note">Данные на 12:30. Обновляем — экран остаётся рабочим.</div>';
+  const N=ev.length,C=cev.length,B=ev.filter(isBad).length,CB=cev.filter(isBad).length,a=avg(ev),ca=avg(cev);
+  const ds=a!=null&&ca!=null?Math.round((a-ca)*10)/10:null;
+  h+=headHTML(ev,cev);
+  const TB=partnerNet?[['r','Рестораны'],['f','Лента'],['s','Оценки']]:[['f','Лента'],['s','Оценки']];
+  h+='<div class="mtabs" id="mtabs">'+TB.map(t=>'<button data-v="'+t[0]+'" class="'+(st.tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
+  if(st.data==='load') h+='<div class="skel"></div>';
+  if(!N) return h+'<div class="list"><div class="empty g">'+sp.lab+' отзывов пока нет.</div></div></div>';
+  if(st.tab==='r'){
+    const rows=R.map((r,i)=>{const e=ev.filter(x=>x.ri===i),c=cev.filter(x=>x.ri===i);return {i,n:e.length,a:avg(e),ca:avg(c),b:e.filter(isBad).length,cb:c.filter(isBad).length}}).sort((x,y)=>y.b-x.b||(x.a||9)-(y.a||9));
+    const mv=(v,dl)=>'<span class="mv"><b>'+v+'</b><span class="sp">|</span><i class="'+dl.k+'">'+dl.t+'</i></span>';
+    h+='<div class="rt"><div class="rr hd"><span>Ресторан</span><span>Средняя</span><span>Плохих</span>'+CPI+'</div>';
+    rows.forEach(x=>h+='<div class="rr'+(st.openR===x.i?' on':'')+'" data-tog="'+x.i+'"><div><div class="nm">'+R[x.i]+' <span class="chv'+(st.openR===x.i?' up':'')+'">⌄</span></div><div class="sub">'+x.n+' '+(x.n%10===1&&x.n%100!==11?'отзыв':(x.n%10>=2&&x.n%10<=4&&(x.n%100<12||x.n%100>14))?'отзыва':'отзывов')+'</div></div>'+mv(f1(x.a),delta(x.a,x.ca,true))+mv(x.b,delta(x.b,x.cb,false))+'<span></span></div>'+(st.openR===x.i?'<div class="rexp">'+restFeed(ev.filter(y=>y.ri===x.i),multi)+'</div>':''));
+    h+='</div>';
+    return h+'</div></div>';
+  }
+  if(st.tab==='s'){
+    const col={1:'var(--coral)',2:'var(--coral)',3:'var(--coral)',4:'var(--mint)',5:'var(--mint)'};
+    h+='<div class="list"><div class="dist">';
+    [5,4,3,2,1].forEach(r=>{const n=ev.filter(x=>x.r===r).length,c=cev.filter(x=>x.r===r).length,p=N?n/N*100:0,cp=C?c/C*100:0;
+      h+='<div class="dr" data-star="'+r+'"><span>'+r+' ★</span><span class="trk"><span class="fil" style="width:'+p+'%;background:'+col[r]+';opacity:.75"></span>'+(C?'<span class="wk" style="left:'+cp+'%"></span>':'')+'</span><span class="n">'+n+' <span class="gr">· '+Math.round(p)+'%</span></span></div>'});
+    h+='</div><div class="muted" style="padding:0 0 8px;font-size:11.5px">▏ неделю назад</div></div>';
+    return h+'</div>';
+  }
+  const chip=(v,l,n)=>'<button data-flt="'+v+'" class="'+(!st.star&&st.flt===v?'on':'')+'">'+l+' · '+n+'</button>';
+  h+='<div class="fl1">'+chip('all','Все',N)+chip('bad','3 и ниже',ev.filter(isBad).length)+chip('txt','С комментарием',ev.filter(x=>x.c).length)+
+     (st.star?'<button class="on" id="clrStar">'+st.star+' ★ · '+ev.filter(x=>x.r===st.star).length+' ✕</button>':'')+'</div>';
+  if(st.star){
+    const L=ev.filter(x=>x.r===st.star).sort(byT);
+    h+='<div class="sec"><span><b>'+st.star+' ★</b></span>'+CPI+'</div><div class="list">'+(L.length?L.map(x=>rvHTML(x,net,multi)).join(''):'<div class="empty g">Таких отзывов нет.</div>')+'</div>';
+    return h+'</div>';
+  }
+  const evF=st.flt==='bad'?ev.filter(isBad):st.flt==='txt'?ev.filter(x=>x.c):ev;
+  return h+feed(evF,net,multi)+'</div>';
+
+}
+function copyText(){
+  const {sp,rest,ev,cev}=data(), net=rest<0, multi=sp.ds.length>1;
+  const per=sp.lab+(multi?' ('+fd(sp.ds[0])+' – '+fd(sp.ds[sp.ds.length-1])+')':', '+fd(sp.ds[0]));
+  const B=ev.filter(isBad).length;
+  let t='Отзывы · '+per+' · '+(net?'все рестораны':R[rest])+'\n';
+  const CB=cev.filter(isBad).length;
+  t+='Всего '+ev.length+' · средняя '+f1(avg(ev))+' · плохих (1–3) '+B+' ('+pc(B,ev.length)+') · хороших (4–5) '+(ev.length-B)+' ('+pc(ev.length-B,ev.length)+')\n';
+  t+='Неделю назад: всего '+cev.length+' · средняя '+f1(avg(cev))+' · плохих '+CB+' · хороших '+(cev.length-CB)+'\n';
+  if(st.tab==='r'){
+    t+='\nРесторан\tОтзывов\tСредняя\tк нед. назад, %\tПлохих\tк нед. назад, %\n';
+    R.map((r,i)=>{const e=ev.filter(x=>x.ri===i),c=cev.filter(x=>x.ri===i);return {r,e,c,b:e.filter(isBad).length}}).sort((x,y)=>y.b-x.b)
+     .forEach(x=>{const ca=avg(x.c),cb=x.c.filter(isBad).length;t+=x.r+'\t'+x.e.length+'\t'+f1(avg(x.e))+'\t'+delta(avg(x.e),ca,true).t+'\t'+x.b+'\t'+delta(x.b,cb,false).t+'\n'});
+    return t;
+  }
+  const line=x=>'  '+x.r+'★ '+(multi?fd(x.d)+' ':'')+hm(x.t)+' · №'+x.o+(x.c?' — '+x.c:'')+'\n';
+  (net?R.map((r,i)=>i):[rest]).forEach(i=>{
+    const e=ev.filter(x=>x.ri===i); if(!e.length) return;
+    const b=e.filter(isBad).sort((a,c)=>a.r-c.r||byT(a,c)), g=e.filter(x=>!isBad(x)&&x.c).sort(byT), q=e.filter(x=>!isBad(x)&&!x.c);
+    t+='\n'+(net?R[i]+' — всего '+e.length+' · средняя '+f1(avg(e))+' · плохих '+b.length+' · хороших '+(e.length-b.length)+'\n':'');
+    if(b.length){t+=' Плохие:\n';b.forEach(x=>t+=line(x))}
+    if(g.length){t+=' Хорошие:\n';g.forEach(x=>t+=line(x))}
+    if(q.length){const c5=q.filter(x=>x.r===5).length;t+=' Без комментария: '+[c5?'5★ × '+c5:'',q.length-c5?'4★ × '+(q.length-c5):''].filter(Boolean).join(', ')+'\n'}
+  });
+  return t;
+}
+function restFeed(e,multi){
+  const bad=e.filter(isBad).sort((a,b)=>a.r-b.r||byT(a,b)), good=e.filter(x=>!isBad(x)&&x.c).sort(byT), q=e.filter(x=>!isBad(x)&&!x.c);
+  let h=bad.map(x=>rvHTML(x,false,multi)).join('')+good.map(x=>rvHTML(x,false,multi)).join('');
+  if(q.length){const c5=q.filter(x=>x.r===5).length;h+='<div class="quiet">Без комментария: <span class="pp">'+(c5?'<span>5 ★ × '+c5+'</span>':'')+(q.length-c5?'<span>4 ★ × '+(q.length-c5)+'</span>':'')+'</span></div>'}
+  return h||'<div class="empty g">Отзывов нет.</div>';
+}
+
+// ---------- сводка ----------
+const plr=(n,a,b,c)=>{const m=n%10,h=n%100;return (m===1&&h!==11)?a:(m>=2&&m<=4&&(h<12||h>14))?b:c};
+function sumSpan(P){
+  const y=addD(TODAY,-1), mon=dow(TODAY)===0;
+  if(P==='y') return {ds:[y],cds:[addD(y,-7)],lab:'Вчера',full:'вчера, '+fd(y),cmp:fd(addD(y,-7))};
+  const m=addD(y,-dow(y)); const ds=[];for(let d=m;d<=y;d=addD(d,1))ds.push(d);
+  return {ds,cds:ds.map(d=>addD(d,-7)),lab:mon?'Прошлая неделя':'С начала недели',full:(mon?'прошлая неделя, ':'с начала недели, ')+fd(m)+' – '+fd(y),cmp:'пр. неделя'};
+}
+function compose(rest,P){
+  const net=rest<0, sp=sumSpan(P), ev=sel(sp.ds,rest), cev=sel(sp.cds,rest);
+  const N=ev.length,B=ev.filter(isBad).length,a=avg(ev);
+  const lab=sp.lab;
+  if(st.data==='zero') return {tone:'grey',head:lab+': отзывов не было',l2:'',body:'<p>'+lab+' отзывов не было.</p>',text:lab+': отзывов не было.'};
+  let b=headHTML(ev,cev);
+  let t='Отзывы · '+sp.full+' · '+(net?'вся сеть':R[rest])+'\n'+'Всего '+N+' · средняя '+f1(a)+' · плохих (3 и ниже) '+B+' · хороших '+(N-B)+'\n';
+  if(net){
+    const rows=R.map((r,i)=>{const e=ev.filter(x=>x.ri===i),c=cev.filter(x=>x.ri===i);return {i,a:avg(e),ca:avg(c),b:e.filter(isBad).length,cb:c.filter(isBad).length}}).filter(x=>x.b>0).sort((x,y)=>y.b-x.b||(x.a||9)-(y.a||9));
+    if(rows.length){
+      const mv=(v,dl)=>'<span class="mv"><b>'+v+'</b><span class="sp">|</span><i class="'+dl.k+'">'+dl.t+'</i></span>';
+      b+='<div class="ssec">Рестораны с плохими отзывами</div><div class="rt"><div class="rr hd"><span>Ресторан</span><span>Средняя</span><span>Плохих</span><span></span></div>'+
+        rows.map(x=>'<div class="rr" style="cursor:default"><div class="nm">'+R[x.i]+'</div>'+mv(f1(x.a),delta(x.a,x.ca,true))+mv(x.b,delta(x.b,x.cb,false))+'<span></span></div>').join('')+'</div>';
+      t+='\nРестораны с плохими: '+rows.map(x=>R[x.i]+' — '+x.b).join(', ')+'\n';
+    }
+  }
+  const bad=ev.filter(isBad).sort((x,y)=>x.r-y.r||byT(x,y)), lim=net?5:8, multi=sp.ds.length>1;
+  if(bad.length){
+    b+='<button class="sumrv'+(st.sumRv?' on':'')+'" id="sumRv"><span>Плохие отзывы · '+bad.length+'</span><span class="chv">⌄</span></button>';
+    if(st.sumRv){
+      b+='<div class="list">'+bad.slice(0,lim).map(x=>rvHTML(x,net,multi).replace('data-rv=','data-x=')).join('')+'</div>';
+      if(bad.length>lim) b+='<p class="muted" style="margin:6px 2px 0">Ещё '+(bad.length-lim)+' — в мониторе.</p>';
+    }
+    t+='\nПлохие:\n'+bad.map(x=>'  '+x.r+'★ '+(net?R[x.ri]+' · ':'')+(multi?fd(x.d)+' ':'')+hm(x.t)+' · №'+x.o+(x.c?' — '+x.c:' — без комментария')).join('\n')+'\n';
+  }
+  const gc=ev.filter(x=>!isBad(x)&&x.c).length;
+  if(gc){b+='<p class="muted" style="margin:8px 2px 0">Хороших с комментарием: '+gc+'.</p>';t+='\nХороших с комментарием: '+gc+'\n'}
+  const head=B?lab+': '+B+' '+plr(B,'плохой отзыв','плохих отзыва','плохих отзывов')+' из '+N:lab+': плохих отзывов нет';
+  const dl=delta(a,avg(cev),true);
+  return {tone:B?'coral':'mint',head,l2:'средняя '+f1(a)+' | '+dl.t,body:b,text:t};
+}
+const SUMICO='<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3.5 4.5h13v9H8l-4.5 3.5z"/></svg>';
+function toneSvg(t){
+  if(t==='mint')return '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><path d="M6.3 10.2l2.7 2.7 4.8-5.2"/></svg>';
+  if(t==='grey')return '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="8"/><circle cx="6.6" cy="10" r=".9" fill="currentColor"/><circle cx="10" cy="10" r=".9" fill="currentColor"/><circle cx="13.4" cy="10" r=".9" fill="currentColor"/></svg>';
+  return '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><path d="M10 5.8v5"/><circle cx="10" cy="14.2" r=".6" fill="currentColor"/></svg>';
+}
+function periodSeg(){const mon=dow(TODAY)===0;return '<div class="psg" id="sumP"><button data-v="y" class="'+(st.sumP==='y'?'on':'')+'">Вчера</button><button data-v="w" class="'+(st.sumP==='w'?'on':'')+'">'+(mon?'Прошлая неделя':'С начала недели')+'</button></div>'}
+const CPS='<button class="ib copyS" title="Скопировать текст"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 3.5v-.4A1.6 1.6 0 0 0 8.9 1.5H3.1A1.6 1.6 0 0 0 1.5 3.1v5.8a1.6 1.6 0 0 0 1.6 1.6h.4"/></svg></button>';
+function focusScreen(){
+  const rest=st.role==='m'?ME:st.focusRest;
+  const selw=st.role==='m'?'<div class="selwrap"><b>Благовещенск-2</b><span></span></div>':
+    '<div class="selwrap"><b>'+(rest<0?'Вся сеть · '+R.length+' ресторанов':R[rest])+'</b><span>⌄</span><select id="fRest"><option value="-1">Вся сеть</option>'+R.map((r,i)=>'<option value="'+i+'"'+(i===rest?' selected':'')+'>'+r+'</option>').join('')+'</select></div>';
+  const C=compose(rest,st.sumP);
+  return selw+'<div class="card '+C.tone+(st.cardOpen?' open':'')+'"><div class="chead"><div class="cico">'+SUMICO+'</div><div><div class="ctitle">Сводка. Отзывы</div><div class="cmeta">☀ '+(st.sumP==='y'?'за вчера':'за неделю')+' · данные на 10:15</div></div><div class="cact">'+CPS+'</div></div>'+
+    '<button class="teaser" id="tz">'+toneSvg(C.tone)+'<span class="t">'+C.head+(C.l2?'<span class="l2">'+C.l2+'</span>':'')+'</span><span class="chev">⌃</span></button>'+
+    '<div class="cbody">'+periodSeg()+C.body+'<button class="openmon" id="toMon">Открыть монитор</button></div></div>';
+}
+function sheet(){
+  const rest=curRest(), C=compose(rest,st.sumP);
+  return '<div class="mon"><div class="mhead"><button class="ib" id="closeSheet" title="Назад к монитору">←</button><span class="tt">Сводка · '+(rest<0?'вся сеть':R[rest])+'</span>'+CPS+'</div>'+periodSeg()+'<div class="sum">'+C.body+'</div></div>';
+}
+function appShell(inner,act){
+  return '<div class="hdr"><div class="logo"><i></i>Spurt App</div><div class="ico"><span>▦</span><span>🔔</span><span>💬</span><span>☼</span><span class="ava"></span></div></div>'+
+    '<div class="tabs"><span'+(act!=='focus'?' class="act"':'')+'>На пульсе</span><span'+(act==='focus'?' class="act"':'')+'>В фокусе</span><span>На связи</span></div>'+inner;
+}
+function pulse(){
+  const rest=st.role==='m'?ME:-1, ev=sel([TODAY],rest,NOWM,TODAY);
+  const B=ev.filter(isBad), unB=B.filter(x=>!x.read).length, a=avg(ev);
+  const col=st.data==='zero'?'var(--grey)':B.length?'var(--coral)':'var(--mint)';
+  const star=(n,c)=>'<svg width="40" height="40" viewBox="0 0 44 44" fill="none" stroke="'+c+'" stroke-width="2.2" stroke-linejoin="round"><path d="M22 4l5.3 11 12 1.6-8.8 8.3 2.2 11.9L22 31l-10.7 5.8 2.2-11.9-8.8-8.3 12-1.6z"/><text x="22" y="26.5" text-anchor="middle" font-size="10" font-weight="700" fill="'+c+'" stroke="none" font-family="Arial">'+n+'</text></svg>';
+  const bub='<svg width="40" height="36" viewBox="0 0 44 40" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linejoin="round"><path d="M5 6h34v22H17l-9 7v-7H5z"/><text x="22" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="'+col+'" stroke="none" font-family="Arial">'+(st.data==='zero'?'—':f1(a))+'</text></svg>';
+  const ic=(d,c)=>'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">'+d+'</svg>';
+  const t=(inner,l,go,dot)=>'<button class="tile'+(go?' go':'')+'"'+(go?' id="rvTile"':'')+'><span class="tsq">'+inner+(dot?'<span class="tdot">'+dot+'</span>':'')+'</span><span>'+l+'</span></button>';
+  let h='<div class="blk"><h3>Контроль качества</h3><div class="tiles">'+t(star('4,9','var(--mint)'),'Доставка')+t(star('4,8','var(--mint)'),'Ресторан')+t(bub,'Отзывы',true,unB)+
+    t(ic('<path d="M3 6h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4z"/>','#ff8a3d'),'Сертификаты')+t(ic('<path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="9" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="18" cy="8" r="2"/>','#7fb0f5'),'Баланс')+'</div></div>';
+  h+='<div class="muted" style="margin:0 4px 6px">Лента уведомлений · сначала плохие</div>';
+  const G=ev.filter(x=>!isBad(x)&&x.c);
+  const ntf=(x,bad)=>'<div class="ntf" data-rv="'+x.id+'"><span class="st r'+x.r+'">'+x.r+'</span><div style="flex:1;min-width:0"><div class="h"><b>'+(bad?'Плохой отзыв':'Отзыв с комментарием')+(st.role==='p'?' · '+R[x.ri]:'')+'</b><span>'+hm(x.t)+'</span></div><div class="tx" style="font-size:13px">'+esc(x.c||'без комментария')+'</div><div class="muted">заказ №'+x.o+' · заказан в '+hm(x.ot)+'</div></div></div>';
+  B.sort((x,y)=>x.r-y.r||y.t-x.t).forEach(x=>h+=ntf(x,true));
+  if(!B.length) h+='<div class="stub" style="height:60px">Плохих отзывов сегодня нет</div>';
+  G.sort((x,y)=>y.t-x.t).slice(0,3).forEach(x=>h+=ntf(x,false));
+  return h+'<div class="stub" style="margin-top:10px">Остальные виджеты</div>';
+}
+function sideNow(){
+  const t={pulse:['«На пульсе»','Без изменений от v2: плитка со средней оценкой и точкой непрочитанных плохих, лента — сначала плохие, потом с комментарием. Нажатие открывает монитор с раскрытым отзывом.'],
+    focus:['«В фокусе» → Сводка','Карточка свёрнута до заголовка и второй строки; нажатие раскрывает. Внутри: переключатель «Вчера / С начала недели» (в понедельник — «Прошлая неделя»), те же четыре числа, что в шапке монитора; у сети — рестораны с плохими отзывами в формате «число | %»; затем строка «Плохие отзывы · N ⌄» — по умолчанию свёрнута, раскрывает отзывы целиком (ресторан — до 8, сеть — первые 5). Значок копирования — весь текст сводки.'],
+    sheet:['Монитор → Сводка','Кнопка «Сводка» в шапке монитора открывает сводку на весь экран (стрелка ← возвращает в монитор), тот же текст для ресторана или сети, выбранных в мониторе. Только законченные периоды, от периода монитора не зависит.'],
+    mon:['Монитор','У управляющего один экран без вкладок: период, два числа, лента. Нажмите на отзыв — он раскроется на месте и станет прочитанным. У партнёра две вкладки: Лента · Рестораны.']}[st.place];
+  $('now').innerHTML='<h2>Сейчас на экране: '+t[0]+'</h2><p style="margin:0">'+t[1]+'</p>';
+}
+function render(){
+  const inner=st.place==='pulse'?appShell(pulse(),'pulse'):st.place==='focus'?appShell(focusScreen(),'focus'):(st.place==='sheet'?sheet():monitor());
+  $('phoneWrap').innerHTML='<div class="phone">'+inner+(st.toast?'<div class="toast">'+st.toast+'</div>':'')+'</div>';
+  const p=$('selP'); if(p) p.value=st.P; const r=$('selR'); if(r) r.value=st.rest;
+  sideNow();
+}
+function segOn(id,v){[...$(id).children].forEach(x=>x.classList.toggle('on',x.dataset.v===v))}
+function setPlace(p){st.place=p;segOn('place',p);render()}
+function toast(s){st.toast=s;render();setTimeout(()=>{st.toast='';render()},1500)}
+['role','place','data','theme'].forEach(id=>$(id).onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;const v=b.dataset.v;segOn(id,v);
+  if(id==='theme'){ if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v);return }
+  st[id]=v; if(id==='role'){st.rest=-1;st.tab='r';st.exp=null}
+  render();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='fRest'){st.focusRest=+e.target.value;render();return}
+  if(e.target.id==='selP'){ if(e.target.value==='cust'){toast('Здесь календарь: с … по …');e.target.value=st.P;return} st.P=e.target.value;st.exp=null;render()}
+  if(e.target.id==='selR'){st.rest=+e.target.value;st.tab=st.rest<0?'r':'f';render()}
+});
+document.addEventListener('click',e=>{
+  const T=e.target; if(!T.closest('#phoneWrap')) return;
+  if(T.closest('#copyAll')){const t=copyText();try{navigator.clipboard.writeText(t).catch(()=>{})}catch(_){ }$('copied').innerHTML='<h2>Скопировано</h2><pre>'+esc(t)+'</pre>';toast(st.tab==='r'?'Таблица скопирована':'Отзывы скопированы');return}
+  if(T.closest('#sumRv')){st.sumRv=!st.sumRv;render();return}
+  if(T.closest('#tz')){st.cardOpen=!st.cardOpen;render();return}
+  const sb=T.closest('#sumP button'); if(sb){st.sumP=sb.dataset.v;render();return}
+  if(T.closest('#toMon')){st.rest=st.role==='m'?-1:st.focusRest;st.P=st.sumP==='y'?'y':'w';st.tab=(st.role==='p'&&st.rest<0)?'r':'f';st.flt='all';st.star=0;setPlace('mon');return}
+  if(T.closest('#openSheet')){setPlace('sheet');return}
+  if(T.closest('#closeSheet')){setPlace('mon');return}
+  if(T.closest('.copyS')){const C=compose(st.place==='focus'?(st.role==='m'?ME:st.focusRest):curRest(),st.sumP);try{navigator.clipboard.writeText(C.text).catch(()=>{})}catch(_){ }$('copied').innerHTML='<h2>Скопировано</h2><pre>'+esc(C.text)+'</pre>';toast('Текст сводки скопирован');return}
+  if(T.closest('.cp')){toast('Текст отзыва скопирован');return}
+  if(T.closest('#rvTile')){st.flt='all';st.star=0;st.P='today';st.rest=-1;st.tab='r';st.exp=null;setPlace('mon');return}
+  const rv=T.closest('[data-rv]'); if(rv){const x=RV.find(r=>r.id===+rv.dataset.rv);x.read=true;
+    if(st.place==='pulse'){st.P='today';st.rest=-1;st.tab='f';st.exp=x.id;setPlace('mon');return}
+    st.exp=st.exp===x.id?null:x.id;render();return}
+  const jp=T.closest('[data-jump]'); if(jp){const el=$(jp.dataset.jump==='bad'?'secBad':'secGood'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(T.closest('#quiet')){st.quietOpen=!st.quietOpen;render();return}
+  const tb=T.closest('#mtabs button'); if(tb){st.tab=tb.dataset.v;st.star=0;render();return}
+  const sr=T.closest('[data-star]'); if(sr){st.star=+sr.dataset.star;st.tab='f';render();return}
+  if(T.closest('#clrStar')){st.star=0;render();return}
+  const fb=T.closest('[data-flt]'); if(fb){st.flt=fb.dataset.flt;st.star=0;render();return}
+  const tg=T.closest('[data-tog]'); if(tg){const i=+tg.dataset.tog;st.openR=st.openR===i?null:i;render();return}
+  const rr=T.closest('[data-rest]'); if(rr){st.rest=+rr.dataset.rest;st.tab='f';render();return}
+  if(T.closest('#backAll')){st.rest=-1;st.tab='r';render();return}
+});
+render();
+</script>
+</body>
+</html>
